@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'apps.authentication',
+    'apps.core',
+    'apps.inventory',
+    'apps.operations',
+    'apps.analytics',
 ]
 
 MIDDLEWARE = [
@@ -115,3 +121,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# zero_project/settings.py
+
+# ... (في آخر الملف)
+
+# إذا كانت True، النظام سيستخدم بيانات وهمية
+# إذا صارت False، النظام سيحاول الاتصال بـ Foodics API
+USE_MOCK_API = True
