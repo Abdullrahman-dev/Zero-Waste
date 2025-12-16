@@ -1,9 +1,10 @@
 # apps/operations/views.py
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404 , render
 from django.contrib.auth import get_user_model
 from apps.core.models import Branch
 from .models import OperationalRequest
+
 
 User = get_user_model()
 
@@ -47,3 +48,11 @@ def review_request(request, request_id, action):
         "new_status": op_request.status,
         "manager_action": msg
     })
+
+
+
+
+
+def requests_list(request):
+    requests = OperationalRequest.objects.select_related('branch').order_by('-created_at')
+    return render(request, 'operations/requests.html', {'requests': requests})

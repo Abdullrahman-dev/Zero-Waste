@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -120,7 +121,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# 1. أضف شرطة مائلة في البداية والنهاية (مهم جداً للمتصفح)
+STATIC_URL = '/static/'
+
+# 2. استخدم طريقة pathlib للربط (لأن BASE_DIR معرف كـ Path)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 
 # zero_project/settings.py
@@ -130,3 +137,10 @@ STATIC_URL = 'static/'
 # إذا كانت True، النظام سيستخدم بيانات وهمية
 # إذا صارت False، النظام سيحاول الاتصال بـ Foodics API
 USE_MOCK_API = True
+
+# انسخ هذا الكود وضعه في آخر ملف settings.py واعمل Save
+print("🔍 DEBUG: BASE_DIR is ->", BASE_DIR)
+import os
+static_path = BASE_DIR / 'static'
+print("🔍 DEBUG: Looking for static files at ->", static_path)
+print("🔍 DEBUG: Does this folder exist? ->", os.path.exists(static_path))

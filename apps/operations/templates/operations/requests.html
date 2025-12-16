@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة العمليات</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading">♻️ Zero Waste</div>
+        <div class="list-group list-group-flush mt-3">
+            <a href="/" class="list-group-item list-group-item-action"><i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم</a>
+            <a href="/inventory/" class="list-group-item list-group-item-action"><i class="bi bi-box-seam ms-2"></i> المخزون</a>
+            <a href="/analytics/" class="list-group-item list-group-item-action"><i class="bi bi-graph-up-arrow ms-2"></i> التحليلات</a>
+            <a href="#" class="list-group-item list-group-item-action active"><i class="bi bi-list-check ms-2"></i> العمليات</a>
+        </div>
+    </div>
+
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-light bg-transparent py-4 px-4"><h2 class="fs-2 fw-bold">⚡ مركز العمليات</h2></nav>
+        <div class="container-fluid px-4">
+            <div class="content-panel">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>نوع الطلب</th>
+                            <th>الفرع</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for req in requests %}
+                        <tr>
+                            <td><span class="badge bg-info text-dark">{{ req.type }}</span></td>
+                            <td>{{ req.branch.name }}</td>
+                            <td>{{ req.created_at|date:"Y-m-d" }}</td>
+                            <td>
+                                {% if req.status == 'PENDING' %}<span class="badge bg-warning text-dark">معلق</span>
+                                {% elif req.status == 'APPROVED' %}<span class="badge bg-success">تمت الموافقة</span>
+                                {% else %}<span class="badge bg-danger">مرفوض</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if req.status == 'PENDING' %}
+                                    <a href="/operations/review/{{ req.id }}/approve/" class="btn btn-sm btn-success">✅ موافقة</a>
+                                    <a href="/operations/review/{{ req.id }}/reject/" class="btn btn-sm btn-outline-danger">❌ رفض</a>
+                                {% else %}
+                                    <span class="text-muted small">تم اتخاذ القرار</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center py-4">لا توجد طلبات عمليات</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

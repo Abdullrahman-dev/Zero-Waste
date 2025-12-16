@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404 , render
 from apps.core.models import Branch
 from .services import AIEngine
+from .models import WasteReport
 
 def generate_waste_report(request, branch_id):
     # 1. تحديد الفرع
@@ -25,3 +26,8 @@ def generate_waste_report(request, branch_id):
             'status': 'safe',
             'message': message
         })
+    
+
+def analytics_dashboard(request):
+    reports = WasteReport.objects.select_related('branch').order_by('-generated_date')
+    return render(request, 'analytics/reports.html', {'reports': reports})

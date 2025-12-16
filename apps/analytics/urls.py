@@ -4,4 +4,5 @@ from . import views
 
 urlpatterns = [
     path('generate/<int:branch_id>/', views.generate_waste_report, name='generate_report'),
+    path('', views.analytics_dashboard, name='analytics_dashboard'),
 ]
