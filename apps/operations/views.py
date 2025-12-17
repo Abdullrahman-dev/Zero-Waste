@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404 , render , redirect
 from django.contrib.auth import get_user_model
 from apps.core.models import Branch
 from .models import OperationalRequest
+from apps.analytics.models import WasteReport
+from django.db.models import Sum
 
 
 User = get_user_model()
@@ -49,3 +51,22 @@ def review_request(request, request_id, action):
 def requests_list(request):
     requests = OperationalRequest.objects.select_related('branch').order_by('-created_at')
     return render(request, 'operations/requests.html', {'requests': requests})
+
+
+
+
+# ... (اترك الدوال السابقة كما هي)
+
+def chart_data_api(request):
+    # نجمع البيانات: اسم الفرع + مجموع الهدر المتوقع
+    # نأخذ أعلى 5 فروع فقط
+    reports = WasteReport.objects.values('branch__name').annotate(
+        total_waste=Sum('total_waste_value')
+    ).order_by('-total_waste')[:5]
+
+    data = {
+        'labels': [item['branch__name'] for item in reports],
+        'values': [item['total_waste'] for item in reports]
+    }
+    
+    return JsonResponse(data)

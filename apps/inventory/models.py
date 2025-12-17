@@ -1,44 +1,55 @@
 from django.db import models
+from datetime import date
 from apps.core.models import Branch
 
-class FoodicsData(models.Model):
-    branch = models.ForeignKey(
-        Branch, 
-        on_delete=models.CASCADE, 
-        related_name='inventory_items'
-    )
-    sku = models.CharField(max_length=100)
-    batch_id = models.CharField(max_length=100)
-    expiry_date = models.DateField()
-    stock_level = models.IntegerField()
-    sales_velocity = models.FloatField(default=0.0) # سرعة البيع المتوقعة
+# 1️⃣ جدول المنتجات الرئيسي (المرجع)
+# هنا نعرف المواد مرة واحدة فقط (مثل: طماطم، دجاج، بيبسي)
+class Product(models.Model):
+    name = models.CharField(max_length=100, verbose_name="اسم المنتج")
+    sku = models.CharField(max_length=50, unique=True, verbose_name="رمز SKU")
+    category = models.CharField(max_length=50, blank=True, null=True, verbose_name="التصنيف")
+    unit = models.CharField(max_length=20, default='kg', verbose_name="وحدة القياس") # كجم، لتر، حبة
+
+    def __str__(self):
+        return f"{self.name} ({self.sku})"
+
+
+# 2️⃣ جدول المخزون التفصيلي (الكميات والتواريخ)
+# هذا الجدول يربط المنتج بالفرع ويحفظ تفاصيل الدفعات والتواريخ
+class StockItem(models.Model):
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='inventory')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_items')
     
+    # بيانات من Foodics
+    batch_id = models.CharField(max_length=100, verbose_name="رقم التشغيلة/الباتش")
+    quantity = models.FloatField(default=0, verbose_name="الكمية الحالية")
+    initial_quantity = models.FloatField(default=0, verbose_name="الكمية الأصلية") # عشان نحسب الاستهلاك
+    expiry_date = models.DateField(verbose_name="تاريخ الانتهاء")
+    
+    # بيانات للذكاء الاصطناعي
+    sales_velocity = models.FloatField(default=1.0, verbose_name="معدل الاستهلاك اليومي") # كم نستهلك منه يومياً؟
     last_synced = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # لضمان عدم تكرار نفس الـ Batch في نفس الفرع
-        unique_together = ('branch', 'sku', 'batch_id') 
+        # يمنع تكرار نفس الباتش لنفس المنتج في نفس الفرع
+        unique_together = ('branch', 'product', 'batch_id')
+        verbose_name = "عنصر مخزون"
+        verbose_name_plural = "عناصر المخزون"
+
+    # --- دوال مساعدة للعرض في الصفحة ---
+    @property
+    def days_remaining(self):
+        """يحسب الأيام المتبقية للصلاحية"""
+        delta = self.expiry_date - date.today()
+        return delta.days
+
+    @property
+    def status_color(self):
+        """يحدد لون التنبيه بناءً على الأيام المتبقية"""
+        days = self.days_remaining
+        if days < 0: return "danger"    # منتهي (أحمر)
+        if days <= 3: return "warning"  # وشك الانتهاء (أصفر)
+        return "success"                # سليم (أخضر)
 
     def __str__(self):
-        return f"{self.sku} ({self.stock_level})"
-    
-from django.db import models
-from apps.core.models import Branch
-
-# جدول المنتجات (مثل: برجر، طماطم، بيبسي)
-class Product(models.Model):
-    name = models.CharField(max_length=100)
-    sku = models.CharField(max_length=50, unique=True)
-    
-    def __str__(self):
-        return self.name
-
-# جدول المخزون (يربط المنتج بالفرع والكمية وتاريخ الانتهاء)
-class StockItem(models.Model):
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='inventory')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=0)
-    expiry_date = models.DateField(null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.product.name} - {self.branch.name}"
+        return f"{self.product.name} - {self.branch.name} ({self.batch_id})"

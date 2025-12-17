@@ -1,9 +1,20 @@
-# apps/inventory/admin.py
 from django.contrib import admin
-from .models import FoodicsData
+from .models import Product, StockItem
 
-@admin.register(FoodicsData)
-class FoodicsDataAdmin(admin.ModelAdmin):
-    list_display = ('sku', 'branch', 'stock_level', 'expiry_date', 'last_synced')
+# 1. شاشة إدارة المنتجات (التعريفات)
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sku', 'category', 'unit')
+    search_fields = ('name', 'sku')
+
+# 2. شاشة إدارة المخزون (الكميات والتواريخ)
+@admin.register(StockItem)
+class StockItemAdmin(admin.ModelAdmin):
+    # لاحظ كيف نعرض اسم المنتج واسم الفرع
+    list_display = ('product', 'branch', 'quantity', 'expiry_date', 'batch_id')
+    
+    # فلترة حسب الفرع وتاريخ الانتهاء
     list_filter = ('branch', 'expiry_date')
-    search_fields = ('sku', 'batch_id')
+    
+    # البحث داخل اسم المنتج المرتبط
+    search_fields = ('product__name', 'batch_id')

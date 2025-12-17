@@ -106,8 +106,11 @@
                     <div class="col-lg-7">
                         <div class="content-panel h-100">
                             <h5 class="mb-4 fw-bold">📊 تحليل المخاطر (تجريبي)</h5>
-                            <canvas id="wasteChart"></canvas>
-                        </div>
+                            
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="wasteChart"></canvas>
+                            </div>
+                            </div>
                     </div>
 
                     <div class="col-lg-5">
@@ -192,6 +195,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/dashboard.js' %}"></script>
+    
+    <script src="{% static 'js/dashboard.js' %}?v=1.0"></script>
 </body>
 </html>

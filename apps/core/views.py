@@ -1,22 +1,26 @@
 # apps/core/views.py
 from django.shortcuts import render
-from django.db.models import Sum, Count
-from apps.core.models import Branch, RestaurantCompany
+from django.db.models import Sum
+from django.http import JsonResponse # 👈 ضروري جداً عشان الـ API يشتغل
+from apps.core.models import Branch
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
 
+# 1. الدالة الرئيسية (أبقيناها كما هي dashboard_home)
 def dashboard_home(request):
-    # 1. إحصائيات عامة
+    # إحصائيات عامة
     total_branches = Branch.objects.count()
     
-    # 2. تحذيرات الذكاء الاصطناعي (أحدث 5 تقارير)
-    latest_reports = WasteReport.objects.order_by('-generated_date')[:5]
-    total_potential_loss = WasteReport.objects.aggregate(Sum('total_waste_value'))['total_waste_value__sum'] or 0
+    # تحذيرات الذكاء الاصطناعي (أحدث 5 تقارير)
+    latest_reports = WasteReport.objects.select_related('branch').order_by('-generated_date')[:5]
     
-    # 3. الطلبات التشغيلية المعلقة (تحتاج موافقة)
-    pending_requests = OperationalRequest.objects.filter(
-        status=OperationalRequest.RequestStatus.PENDING
-    ).order_by('-created_at')
+    # حساب مجموع الهدر (مع حماية ضد القيم الفارغة)
+    total_potential_loss = WasteReport.objects.aggregate(sum=Sum('total_waste_value'))['sum']
+    if total_potential_loss is None:
+        total_potential_loss = 0
+    
+    # الطلبات التشغيلية المعلقة
+    pending_requests = OperationalRequest.objects.filter(status='PENDING').order_by('-created_at')
 
     context = {
         'total_branches': total_branches,
@@ -26,3 +30,19 @@ def dashboard_home(request):
     }
     
     return render(request, 'core/dashboard.html', context)
+
+
+# 2. دالة الرسم البياني (هذه هي الإضافة الجديدة فقط)
+def chart_data_api(request):
+    # نجمع البيانات: اسم الفرع + مجموع الهدر المتوقع
+    # نأخذ أعلى 5 فروع فقط
+    reports = WasteReport.objects.values('branch__name').annotate(
+        total_waste=Sum('total_waste_value')
+    ).order_by('-total_waste')[:5]
+
+    data = {
+        'labels': [item['branch__name'] for item in reports],
+        'values': [item['total_waste'] for item in reports]
+    }
+    
+    return JsonResponse(data)

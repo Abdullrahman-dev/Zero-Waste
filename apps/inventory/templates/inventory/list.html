@@ -3,77 +3,82 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المخزون</title>
+    <title>إدارة المخزون - Zero Waste</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 </head>
 <body>
-
 <div class="d-flex" id="wrapper">
+    
     <div id="sidebar-wrapper">
         <div class="sidebar-heading">♻️ Zero Waste</div>
         <div class="list-group list-group-flush mt-3">
-            <a href="/" class="list-group-item list-group-item-action">
-                <i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم
-            </a>
-            <a href="#" class="list-group-item list-group-item-action active">
-                <i class="bi bi-box-seam ms-2"></i> المخزون (Foodics)
-            </a>
-            <a href="/analytics/" class="list-group-item list-group-item-action"> <i class="bi bi-graph-up-arrow ms-2"></i> التحليلات
-            </a>
-            <a href="/operations/" class="list-group-item list-group-item-action"> <i class="bi bi-list-check ms-2"></i> العمليات
-            </a>
+            <a href="/" class="list-group-item list-group-item-action"><i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم</a>
+            <a href="/admin/inventory/product/" target="_blank" class="list-group-item list-group-item-action"><i class="bi bi-plus-circle ms-2"></i> إضافة منتجات</a>
+            <a href="/admin/inventory/stockitem/" target="_blank" class="list-group-item list-group-item-action"><i class="bi bi-plus-square ms-2"></i> إضافة مخزون</a>
+            <a href="/inventory/" class="list-group-item list-group-item-action active"><i class="bi bi-box-seam ms-2"></i> المخزون</a>
+            <a href="/analytics/" class="list-group-item list-group-item-action"><i class="bi bi-graph-up-arrow ms-2"></i> التحليلات</a>
+            <a href="/operations/" class="list-group-item list-group-item-action"><i class="bi bi-list-check ms-2"></i> العمليات</a>
         </div>
     </div>
 
     <div id="page-content-wrapper">
         <nav class="navbar navbar-light bg-transparent py-4 px-4">
-            <h2 class="fs-2 fw-bold text-dark">📦 سجل المخزون</h2>
+            <h2 class="fs-2 fw-bold">📦 سجل المخزون (Stock Items)</h2>
         </nav>
 
         <div class="container-fluid px-4">
             <div class="content-panel">
-                <div class="d-flex justify-content-between mb-4">
-                    <h5 class="fw-bold">قائمة المنتجات الحالية</h5>
-                    <button class="btn btn-primary btn-sm">
-                        <i class="bi bi-arrow-clockwise"></i> مزامنة مع فودكس
-                    </button>
-                </div>
-
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="bg-light">
                             <tr>
                                 <th>اسم المنتج</th>
-                                <th>SKU</th>
                                 <th>الفرع</th>
                                 <th>الكمية</th>
                                 <th>تاريخ الانتهاء</th>
+                                <th>الأيام المتبقية</th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody>
-                        {% for item in items %}
+                        {% for item in stock_items %}
                             <tr>
-                                <td class="fw-bold">{{ item.product.name }}</td>
-                                <td><span class="text-muted small">{{ item.product.sku }}</span></td>
+                                <td class="fw-bold">
+                                    {{ item.product.name }}
+                                    <br>
+                                    <small class="text-muted" style="font-size: 0.8rem;">SKU: {{ item.product.sku }}</small>
+                                </td>
                                 <td>{{ item.branch.name }}</td>
-                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.quantity }} {{ item.product.unit }}</td>
                                 <td>{{ item.expiry_date|date:"Y-m-d" }}</td>
+                                
                                 <td>
-                                    {% if item.quantity > 50 %}
-                                        <span class="badge bg-success">متوفر</span>
+                                    {% if item.days_remaining < 0 %}
+                                        <span class="text-danger fw-bold">منتهي ({{ item.days_remaining }} يوم)</span>
+                                    {% elif item.days_remaining <= 3 %}
+                                        <span class="text-warning fw-bold">باقي {{ item.days_remaining }} أيام</span>
                                     {% else %}
-                                        <span class="badge bg-warning text-dark">ينفذ قريباً</span>
+                                        <span class="text-success">باقي {{ item.days_remaining }} يوم</span>
                                     {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-{{ item.status_color }} bg-opacity-10 text-{{ item.status_color }}">
+                                        {% if item.status_color == 'danger' %} تالف 
+                                        {% elif item.status_color == 'warning' %} خطر 
+                                        {% else %} سليم {% endif %}
+                                    </span>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">
-                                    لا توجد بيانات.. تأكد من تشغيل أمر المزامنة Sync Foodics
+                                    <i class="bi bi-box-seam fs-1 d-block mb-3"></i>
+                                    لا توجد بيانات في المخزون..
+                                    <br>
+                                    <a href="/admin/inventory/stockitem/add/" class="btn btn-primary mt-3 btn-sm" target="_blank">إضافة مخزون الآن</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -84,7 +89,5 @@
         </div>
     </div>
 </div>
-
-<script src="{% static 'js/dashboard.js' %}"></script>
 </body>
 </html>
