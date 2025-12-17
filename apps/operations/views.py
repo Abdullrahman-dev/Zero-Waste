@@ -1,6 +1,6 @@
 # apps/operations/views.py
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404 , render
+from django.shortcuts import get_object_or_404 , render , redirect
 from django.contrib.auth import get_user_model
 from apps.core.models import Branch
 from .models import OperationalRequest
@@ -9,26 +9,19 @@ from .models import OperationalRequest
 User = get_user_model()
 
 # 1. محاكاة: مدير الفرع يرسل طلب عرض خاص
-def create_offer_request(request, branch_id):
+def create_promo_request(request, branch_id):
     branch = get_object_or_404(Branch, id=branch_id)
     
-    # نفترض أن المستخدم رقم 1 هو المدير (للتجربة السريعة)
-    # في الواقع نستخدم request.user
-    manager = User.objects.first() 
-    
-    new_request = OperationalRequest.objects.create(
-        submitted_by=manager,
+    # إنشاء الطلب في الداتابيس
+    OperationalRequest.objects.create(
         branch=branch,
-        type="URGENT_PROMO",
-        details="AI Alert: Burger expiring in 4 days. Requesting 50% Discount approval.",
-        status=OperationalRequest.RequestStatus.PENDING
+        type='PROMO_CAMPAIGN',
+        details=f'طلب تلقائي بناءً على تقرير الذكاء الاصطناعي للفرع: {branch.name}',
+        status='PENDING'
     )
     
-    return JsonResponse({
-        "status": "submitted",
-        "request_id": new_request.id,
-        "message": "Operational request sent to General Manager successfully."
-    })
+    # بدلاً من json، نعيد توجيه المستخدم لصفحة العمليات ليرى الطلب
+    return redirect('requests_list')
 
 # 2. محاكاة: المدير العام يوافق على الطلب
 def review_request(request, request_id, action):
