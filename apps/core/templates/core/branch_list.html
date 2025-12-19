@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}إدارة الفروع - Zero Waste{% endblock %}
+
+{% block content %}
+    <nav class="navbar navbar-light bg-transparent py-4 px-4">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <h2 class="fs-2 fw-bold text-dark">🏢 فروع المطعم</h2>
+            <button class="btn btn-dark btn-sm rounded-pill px-4">
+                <i class="bi bi-plus-lg"></i> إضافة فرع جديد
+            </button>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="content-panel">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>اسم الفرع</th>
+                            <th>الموقع</th>
+                            <th>المدير المسؤول</th>
+                            <th>حد الهدر</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td class="fw-bold">{{ branch.name }}</td>
+                            <td><i class="bi bi-geo-alt text-muted me-1"></i> {{ branch.location }}</td>
+                            <td>
+                                {% if branch.manager %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">{{ branch.manager.username }}</span>
+                                {% else %}
+                                    <span class="text-muted small">-- غير محدد --</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ branch.waste_threshold }}%</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">لا توجد فروع مسجلة حالياً.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

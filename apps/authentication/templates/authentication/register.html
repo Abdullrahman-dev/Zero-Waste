@@ -1,0 +1,55 @@
+{% extends 'authentication/base_auth.html' %}
+
+{% block title %}إنشاء حساب - Zero Waste{% endblock %}
+
+{% block content %}
+<h4 class="text-center mb-4">انضم إلينا لتقليل الهدر</h4>
+
+{% if form.errors %}
+    <div class="alert alert-danger shadow-sm border-0 mb-4">
+        <ul class="mb-0">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label class="form-label">اسم المستخدم (بالإنجليزي)</label>
+        <input type="text" name="username" class="form-control" placeholder="مثال: osama_2025" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">البريد الإلكتروني</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">نوع الحساب</label>
+        <select name="role" class="form-select" required>
+            <option value="manager">مدير مطعم (مشرف عام)</option>
+            <option value="branch_manager">مدير فرع</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 py-2">إنشاء الحساب</button>
+    
+    <div class="text-center mt-3">
+        <small>لديك حساب بالفعل؟ <a href="{% url 'login' %}" class="text-decoration-none">تسجيل الدخول</a></small>
+    </div>
+</form>
+{% endblock %}

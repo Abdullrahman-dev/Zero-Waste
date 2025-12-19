@@ -1,201 +1,150 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero Waste - لوحة القيادة</title>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-</head>
+{% block title %}Zero Waste - لوحة القيادة{% endblock %}
 
-<body>
+{% block content %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
+        <div class="d-flex align-items-center">
+            <h2 class="fs-2 m-0 fw-bold text-dark">نظرة عامة</h2>
+        </div>
+        
+        <div class="navbar-nav me-auto">
+            <div class="d-flex align-items-center">
+                <span class="text-muted ms-2">مرحباً، المدير العام</span>
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=27ae60&color=fff" class="rounded-circle" width="40">
+            </div>
+        </div>
+    </nav>
 
-    <div class="d-flex" id="wrapper">
+    <div class="container-fluid px-4">
+        
+        <div class="row g-4 my-2">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">إجمالي الفروع</p>
+                        <h2 class="fw-bold mb-0">{{ total_branches }}</h2>
+                    </div>
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                </div>
+            </div>
 
-        <div id="sidebar-wrapper">
-            <div class="sidebar-heading">♻️ Zero Waste</div>
-            <div class="list-group list-group-flush mt-3">
-                
-                <a href="/" class="list-group-item list-group-item-action active">
-                    <i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم
-                </a>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-right-color: #e74c3c;">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">قيمة الهدر المتوقع (AI)</p>
+                        <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
+                    </div>
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
 
-                <a href="/admin/core/branch/" target="_blank" class="list-group-item list-group-item-action">
-                    <i class="bi bi-shop ms-2"></i> الفروع
-                </a>
-
-                <a href="/inventory/" class="list-group-item list-group-item-action">
-                    <i class="bi bi-box-seam ms-2"></i> المخزون (Foodics)
-                </a>
-
-                <a href="/analytics/" class="list-group-item list-group-item-action">
-                    <i class="bi bi-graph-up-arrow ms-2"></i> التحليلات
-                </a>
-
-                <a href="/operations/" class="list-group-item list-group-item-action">
-                    <i class="bi bi-list-check ms-2"></i> العمليات
-                </a>
-
-                <a href="#" class="list-group-item list-group-item-action">
-                    <i class="bi bi-gear ms-2"></i> الإعدادات
-                </a>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-right-color: #f1c40f;">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">طلبات معلقة</p>
+                        <h2 class="fw-bold mb-0">{{ pending_requests.count }}</h2>
+                    </div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="page-content-wrapper">
-            
-            <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
-                <div class="d-flex align-items-center">
-                    <h2 class="fs-2 m-0 fw-bold text-dark">نظرة عامة</h2>
-                </div>
-                
-                <div class="navbar-nav me-auto">
-                    <div class="d-flex align-items-center">
-                        <span class="text-muted ms-2">مرحباً، المدير العام</span>
-                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=27ae60&color=fff" class="rounded-circle" width="40">
+        <div class="row my-5">
+            <div class="col-lg-7">
+                <div class="content-panel h-100">
+                    <h5 class="mb-4 fw-bold">📊 تحليل المخاطر (تجريبي)</h5>
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="wasteChart"></canvas>
                     </div>
                 </div>
-            </nav>
+            </div>
 
-            <div class="container-fluid px-4">
-                
-                <div class="row g-4 my-2">
-                    <div class="col-md-4">
-                        <div class="stat-card">
-                            <div>
-                                <p class="text-muted mb-1 fw-bold">إجمالي الفروع</p>
-                                <h2 class="fw-bold mb-0">{{ total_branches }}</h2>
-                            </div>
-                            <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                                <i class="bi bi-buildings"></i>
-                            </div>
+            <div class="col-lg-5">
+                <div class="content-panel h-100">
+                    <h5 class="mb-4 fw-bold">⚡ إجراءات عاجلة (Action Required)</h5>
+                    {% if pending_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-custom table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>الفرع</th>
+                                        <th>نوع الطلب</th>
+                                        <th>إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for req in pending_requests %}
+                                    <tr>
+                                        <td class="fw-bold">{{ req.branch.name }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ req.type }}</span></td>
+                                        <td>
+                                            <a href="/operations/review/{{ req.id }}/approve/" target="_blank" class="btn btn-sm btn-success rounded-pill px-3">
+                                                <i class="bi bi-check-lg"></i> موافقة
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="stat-card" style="border-right-color: #e74c3c;">
-                            <div>
-                                <p class="text-muted mb-1 fw-bold">قيمة الهدر المتوقع (AI)</p>
-                                <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
-                            </div>
-                            <div class="icon-box bg-danger bg-opacity-10 text-danger">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle text-success fs-1"></i>
+                            <p class="mt-3 text-muted">ممتاز! لا توجد طلبات معلقة.</p>
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="stat-card" style="border-right-color: #f1c40f;">
-                            <div>
-                                <p class="text-muted mb-1 fw-bold">طلبات معلقة</p>
-                                <h2 class="fw-bold mb-0">{{ pending_requests.count }}</h2>
-                            </div>
-                            <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
-
-                <div class="row my-5">
-                    <div class="col-lg-7">
-                        <div class="content-panel h-100">
-                            <h5 class="mb-4 fw-bold">📊 تحليل المخاطر (تجريبي)</h5>
-                            
-                            <div style="position: relative; height: 300px; width: 100%;">
-                                <canvas id="wasteChart"></canvas>
-                            </div>
-                            </div>
-                    </div>
-
-                    <div class="col-lg-5">
-                        <div class="content-panel h-100">
-                            <h5 class="mb-4 fw-bold">⚡ إجراءات عاجلة (Action Required)</h5>
-                            {% if pending_requests %}
-                                <div class="table-responsive">
-                                    <table class="table table-custom table-hover align-middle">
-                                        <thead>
-                                            <tr>
-                                                <th>الفرع</th>
-                                                <th>نوع الطلب</th>
-                                                <th>إجراء</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for req in pending_requests %}
-                                            <tr>
-                                                <td class="fw-bold">{{ req.branch.name }}</td>
-                                                <td><span class="badge bg-light text-dark border">{{ req.type }}</span></td>
-                                                <td>
-                                                    <a href="/operations/review/{{ req.id }}/approve/" target="_blank" class="btn btn-sm btn-success rounded-pill px-3">
-                                                        <i class="bi bi-check-lg"></i> موافقة
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="bi bi-check-circle text-success fs-1"></i>
-                                    <p class="mt-3 text-muted">ممتاز! لا توجد طلبات معلقة.</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <div class="content-panel">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h5 class="fw-bold">🤖 تقارير الذكاء الاصطناعي الأخيرة</h5>
-                                <button class="btn btn-outline-primary btn-sm">عرض الكل</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-custom align-middle">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th>رقم التقرير</th>
-                                            <th>الفرع</th>
-                                            <th>تاريخ التحليل</th>
-                                            <th>القيمة المهددة</th>
-                                            <th>الحالة</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for report in latest_reports %}
-                                        <tr>
-                                            <td>#{{ report.id }}</td>
-                                            <td>{{ report.branch.name }}</td>
-                                            <td>{{ report.generated_date|date:"Y-m-d H:i" }}</td>
-                                            <td class="text-danger fw-bold">{{ report.total_waste_value }} ر.س</td>
-                                            <td><span class="status-badge bg-danger bg-opacity-10 text-danger">High Risk</span></td>
-                                        </tr>
-                                    {% empty %}
-                                        <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">لا توجد تقارير.. النظام آمن ✅</td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="content-panel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold">🤖 تقارير الذكاء الاصطناعي الأخيرة</h5>
+                        <button class="btn btn-outline-primary btn-sm">عرض الكل</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>رقم التقرير</th>
+                                    <th>الفرع</th>
+                                    <th>تاريخ التحليل</th>
+                                    <th>القيمة المهددة</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for report in latest_reports %}
+                                <tr>
+                                    <td>#{{ report.id }}</td>
+                                    <td>{{ report.branch.name }}</td>
+                                    <td>{{ report.generated_date|date:"Y-m-d H:i" }}</td>
+                                    <td class="text-danger fw-bold">{{ report.total_waste_value }} ر.س</td>
+                                    <td><span class="status-badge bg-danger bg-opacity-10 text-danger">High Risk</span></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">لا توجد تقارير.. النظام آمن ✅</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script src="{% static 'js/dashboard.js' %}?v=1.0"></script>
-</body>
-</html>
+{% endblock %}

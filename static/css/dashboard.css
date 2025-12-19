@@ -1,110 +1,139 @@
-/* apps/core/static/core/dashboard.css */
-
+/* =========================================
+   1. التنسيقات الأساسية (Layout & Base)
+   ========================================= */
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #27ae60;
-    --accent-color: #ecf0f1;
-    --text-color: #333;
+    --main-bg-color: #f5f6fa;
+    --sidebar-bg-color: #2c3e50;  /* اللون الكحلي للقائمة */
+    --text-color: #2c3e50;
+    --active-color: #27ae60;      /* الأخضر */
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f3f4f6;
     overflow-x: hidden;
+    background-color: var(--main-bg-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* تنسيق القائمة الجانبية */
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* =========================================
+   2. القائمة الجانبية (Sidebar Main Structure)
+   ========================================= */
 #sidebar-wrapper {
-    min-height: 100vh;
-    width: 280px;
-    margin-right: 0;
-    background-color: var(--primary-color);
+    min-width: 280px;
+    max-width: 280px;
+    background-color: var(--sidebar-bg-color);
     color: #fff;
-    transition: margin 0.25s ease-out;
-    position: fixed;
-    right: 0;
-    top: 0;
-    z-index: 1000;
+    min-height: 100vh;
+    transition: all 0.3s;
 }
 
-#sidebar-wrapper .sidebar-heading {
-    padding: 1.5rem;
+.sidebar-heading {
+    padding: 1.5rem 1.5rem;
     font-size: 1.5rem;
     font-weight: bold;
+    color: #fff;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
 }
 
-#sidebar-wrapper .list-group-item {
-    background-color: transparent;
-    color: rgba(255, 255, 255, 0.8);
-    border: none;
-    padding: 1rem 1.5rem;
-    font-size: 1.1rem;
-}
-
-#sidebar-wrapper .list-group-item:hover,
-#sidebar-wrapper .list-group-item.active {
-    background-color: var(--secondary-color);
-    color: #fff;
-    border-radius: 5px;
-    margin: 0 10px;
-}
-
-/* تنسيق المحتوى الرئيسي */
+/* =========================================
+   3. محتوى الصفحة (Page Content)
+   ========================================= */
 #page-content-wrapper {
-    margin-right: 280px;
-    width: calc(100% - 280px);
-    padding: 20px;
+    width: 100%;
+    padding: 0;
 }
 
-/* البطاقات الإحصائية */
-.stat-card {
-    background: #fff;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
-    border-right: 5px solid var(--secondary-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.icon-box {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-/* الجداول واللوحات */
 .content-panel {
     background: #fff;
     border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 25px;
+    padding: 20px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 20px;
 }
 
+/* =========================================
+   4. الكروت والإحصائيات (Cards & Stats)
+   ========================================= */
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    border-right: 4px solid var(--active-color); /* الخط الملون يمين الكرت */
+}
+
+.icon-box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.5rem;
+}
+
+/* =========================================
+   5. الجداول (Tables)
+   ========================================= */
 .table-custom thead th {
     border-top: none;
-    color: #8898aa;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    font-weight: 600;
+    border-bottom: 2px solid #f0f0f0;
+    color: #6c757d;
+    font-size: 0.9rem;
 }
 
-.status-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
+.table-custom tbody td {
+    padding: 1rem 0.5rem;
+    vertical-align: middle;
+}
+
+/* =========================================
+   6. تحسينات القائمة الجانبية (Sidebar Fixes)
+   هذا هو الجزء الجديد لتوحيد الخطوط والألوان
+   ========================================= */
+
+/* جعل الخلفية شفافة لجميع العناصر */
+#sidebar-wrapper .list-group-item {
+    background-color: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+    border: none !important;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+/* العنصر النشط */
+#sidebar-wrapper .list-group-item.active {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    background-color: var(--active-color) !important; /* الخلفية الخضراء */
+    border-radius: 0 !important;
+    border-right: 5px solid #1e8449 !important; /* خط أخضر غامق للتميز */
+}
+
+/* أيقونات القائمة */
+#sidebar-wrapper .list-group-item i {
+    font-size: 1.2rem !important;
+    margin-left: 10px !important;
+    width: 25px;
+    text-align: center;
+}
+
+/* تأثير التحويم (Hover) */
+#sidebar-wrapper .list-group-item:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(-5px);
 }

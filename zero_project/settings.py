@@ -28,6 +28,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# settings.py
+
+# إخبار جانغو باستخدام الموديل المخصص من تطبيق authentication
+AUTH_USER_MODEL = 'authentication.User'
+
 
 # Application definition
 
@@ -61,10 +66,11 @@ ROOT_URLCONF = 'zero_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # 👈👈👈 عدل هذا السطر ضروري
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -122,11 +128,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 # 1. أضف شرطة مائلة في البداية والنهاية (مهم جداً للمتصفح)
+# 1. الرابط الذي يظهر في المتصفح
+# settings.py
+
+# تأكد من تعديل هذا الجزء تماماً هكذا
 STATIC_URL = '/static/'
 
-# 2. استخدم طريقة pathlib للربط (لأن BASE_DIR معرف كـ Path)
+# الربط بمجلد static الرئيسي الموجود في جذر المشروع
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
 
 
@@ -144,3 +154,8 @@ import os
 static_path = BASE_DIR / 'static'
 print("🔍 DEBUG: Looking for static files at ->", static_path)
 print("🔍 DEBUG: Does this folder exist? ->", os.path.exists(static_path))
+
+
+
+
+LOGIN_REDIRECT_URL = 'core:dashboard'

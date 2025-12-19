@@ -5,6 +5,7 @@ from django.http import JsonResponse # 👈 ضروري جداً عشان الـ 
 from apps.core.models import Branch
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
+from .models import Branch
 
 # 1. الدالة الرئيسية (أبقيناها كما هي dashboard_home)
 def dashboard_home(request):
@@ -46,3 +47,12 @@ def chart_data_api(request):
     }
     
     return JsonResponse(data)
+
+# صفحة عرض الفروع
+def branch_list(request):
+    branches = Branch.objects.all()
+    context = {
+        'branches': branches,
+        'title': 'إدارة الفروع'
+    }
+    return render(request, 'core/branch_list.html', context)

@@ -19,9 +19,12 @@ from django.urls import path , include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('apps.core.urls')),
+    
+    # استدعاء واحد فقط لتطبيق core مع الـ namespace
+    path('', include('apps.core.urls', namespace='core')),
+    
     path('inventory/', include('apps.inventory.urls')),
     path('analytics/', include('apps.analytics.urls')),
     path('operations/', include('apps.operations.urls')),
-   # path('api/auth/', include('apps.authentication.urls')),
+    path('auth/', include('apps.authentication.urls')),
 ]
