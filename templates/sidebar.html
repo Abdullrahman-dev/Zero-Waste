@@ -4,23 +4,37 @@
         <a href="/" class="list-group-item list-group-item-action">
             <i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم
         </a>
+        
+        {% if request.user.role == 'manager' or request.user.is_superuser %}
         <a href="{% url 'inventory:add_product' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_product' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-plus-circle-dotted ms-2"></i> إضافة منتج جديد
         </a>
+        {% endif %}
+
         <a href="{% url 'inventory:add_stock_item' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_stock_item' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-box-arrow-in-down ms-2"></i> إضافة للمخزون
         </a>
         <a href="{% url 'inventory:inventory_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
             <i class="bi bi-box-seam ms-2"></i> المخزون
         </a>
+        
+        {% if request.user.role == 'manager' or request.user.is_superuser %}
         <a href="{% url 'core:branch_list' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'branch_list' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-shop ms-2"></i> الفروع
         </a>
+        {% endif %}
+
         <a href="/analytics/" class="list-group-item list-group-item-action">
             <i class="bi bi-graph-up-arrow ms-2"></i> التحليلات
         </a>
         <a href="/operations/" class="list-group-item list-group-item-action">
             <i class="bi bi-list-check ms-2"></i> العمليات
         </a>
+        
+        <div class="mt-auto border-top pt-3">
+            <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger bg-transparent">
+                <i class="bi bi-box-arrow-right ms-2"></i> تسجيل خروج
+            </a>
+        </div>
     </div>
 </div>

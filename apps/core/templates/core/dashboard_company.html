@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ user_role }}{% endblock %}
+
+{% block content %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
+        <div class="d-flex align-items-center">
+            <h2 class="fs-2 m-0 fw-bold text-dark">لوحة التحكم</h2>
+            <span class="badge {% if is_manager %}bg-primary{% else %}bg-success{% endif %} ms-3">{{ user_role }}</span>
+        </div>
+        
+        <!-- أزرار الإجراءات السريعة (تظهر فقط للمدير العام) -->
+        {% if is_manager %}
+        <div class="ms-auto">
+            <a href="{% url 'core:branch_list' %}" class="btn btn-outline-dark me-2">
+                <i class="bi bi-shop"></i> إدارة الفروع
+            </a>
+            <button class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg"></i> إضافة فرع جديد
+            </button>
+        </div>
+        {% endif %}
+    </nav>
+
+    <div class="container-fluid px-4">
+        
+        <div class="row g-4 my-2">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">الفروع النشطة</p>
+                        <h2 class="fw-bold mb-0">{{ total_branches }}</h2>
+                    </div>
+                    <div class="icon-box bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card" style="border-right-color: #e74c3c;">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">إجمالي الهدر المالي</p>
+                        <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
+                    </div>
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-graph-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card" style="border-right-color: #f1c40f;">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">طلبات معلقة</p>
+                        <h2 class="fw-bold mb-0">{{ pending_requests|length }}</h2>
+                    </div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-5">
+            <!-- الرسم البياني وقائمة الطلبات -->
+            <div class="col-lg-8">
+                <div class="content-panel h-100">
+                    <h5 class="fw-bold mb-4">📊 تحليل الهدر (آخر العمليات)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>الفرع</th>
+                                    <th>تاريخ التقرير</th>
+                                    <th>قيمة الهدر</th>
+                                    <th>التفاصيل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for report in latest_reports %}
+                                <tr>
+                                    <td class="fw-bold">{{ report.branch.name }}</td>
+                                    <td>{{ report.generated_date|date:"Y-m-d H:i" }}</td>
+                                    <td class="text-danger fw-bold">{{ report.total_waste_value }} ر.س</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">عرض</button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">لا توجد تقارير هدر مسجلة.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="content-panel h-100">
+                    <h5 class="fw-bold mb-4">
+                        {% if is_manager %}
+                            ⚡ طلبات الفروع
+                        {% else %}
+                            ⚡ طلباتي المرسلة
+                        {% endif %}
+                    </h5>
+                    
+                    {% if is_manager %}
+                        <!-- قائمة موافقة المدير -->
+                        <div class="list-group list-group-flush">
+                        {% for req in pending_requests %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ req.branch.name }}</span>
+                                    <small class="text-muted">{{ req.created_at|date:"m-d" }}</small>
+                                </div>
+                                <p class="mb-2 text-muted small">{{ req.type }}</p>
+                                <a href="/operations/review/{{ req.id }}/approve/" class="btn btn-sm btn-success w-100 rounded-pill">
+                                    موافقة
+                                </a>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-check2-all fs-1"></i>
+                                <p class="mt-2 text-small">جميع الطلبات معالجة</p>
+                            </div>
+                        {% endfor %}
+                        </div>
+
+                    {% else %}
+                        <!-- قائمة عرض فقط لمدير الفرع -->
+                        <div class="list-group list-group-flush">
+                        {% for req in my_requests %}
+                            <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ req.type }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ req.created_at|date:"m-d" }}</small>
+                                </div>
+                                {% if req.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">انتظار</span>
+                                {% elif req.status == 'APPROVED' %}
+                                    <span class="badge bg-success">مقبول</span>
+                                {% else %}
+                                    <span class="badge bg-danger">مرفوض</span>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4 text-muted">
+                                لم يتم إرسال أي طلبات.
+                            </div>
+                        {% endfor %}
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-outline-primary btn-sm w-100">طلب جديد</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

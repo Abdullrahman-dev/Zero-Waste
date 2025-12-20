@@ -5,10 +5,32 @@ from apps.core.models import Branch
 # 1️⃣ جدول المنتجات الرئيسي (المرجع)
 # هنا نعرف المواد مرة واحدة فقط (مثل: طماطم، دجاج، بيبسي)
 class Product(models.Model):
+    CATEGORY_CHOICES = [
+        ('meat', 'لحوم'),
+        ('chicken', 'دجاج'),
+        ('vegetables', 'خضروات'),
+        ('fruits', 'فواكه'),
+        ('dairy', 'ألبان وأجبان'),
+        ('drinks', 'مشروبات'),
+        ('bakery', 'مخبوزات'),
+        ('spices', 'بهارات'),
+        ('packaging', 'تغليف'),
+        ('other', 'أخرى'),
+    ]
+
+    UNIT_CHOICES = [
+        ('kg', 'كجم'),
+        ('g', 'جم'),
+        ('liter', 'لتر'),
+        ('ml', 'مل'),
+        ('pcs', 'حبة'),
+        ('box', 'كرتون'),
+    ]
+
     name = models.CharField(max_length=100, verbose_name="اسم المنتج")
     sku = models.CharField(max_length=50, unique=True, verbose_name="رمز SKU")
-    category = models.CharField(max_length=50, blank=True, null=True, verbose_name="التصنيف")
-    unit = models.CharField(max_length=20, default='kg', verbose_name="وحدة القياس") # كجم، لتر، حبة
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, blank=True, null=True, verbose_name="التصنيف")
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default='kg', verbose_name="وحدة القياس") # كجم، لتر، حبة
 
     def __str__(self):
         return f"{self.name} ({self.sku})"

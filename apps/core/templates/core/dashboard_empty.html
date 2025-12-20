@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5 mt-5">
+    <i class="bi bi-person-x fs-1 text-secondary"></i>
+    <h2 class="mt-3">لا يوجد صلاحية</h2>
+    <p class="text-muted">
+        حسابك غير مرتبط بأي شركة أو فرع. يرجى التواصل مع الدعم الفني.
+        <br>
+        {% if error %}
+        <span class="text-danger small">Error: {{ error }}</span>
+        {% endif %}
+    </p>
+    <a href="{% url 'login' %}" class="btn btn-outline-primary mt-3">تسجيل دخول بحساب آخر</a>
+</div>
+{% endblock %}

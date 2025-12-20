@@ -6,9 +6,11 @@
     <nav class="navbar navbar-light bg-transparent py-4 px-4">
         <div class="d-flex align-items-center justify-content-between w-100">
             <h2 class="fs-2 fw-bold text-dark">🏢 فروع المطعم</h2>
-            <button class="btn btn-dark btn-sm rounded-pill px-4">
+            {% if request.user.role == 'manager' or request.user.is_superuser %}
+            <button class="btn btn-dark btn-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addBranchModal">
                 <i class="bi bi-plus-lg"></i> إضافة فرع جديد
             </button>
+            {% endif %}
         </div>
     </nav>
 
@@ -52,4 +54,72 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Add New Branch -->
+    <div class="modal fade" id="addBranchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{% url 'core:add_branch' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">🏢 إضافة فرع جديد</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            {{ branch_form.name.label_tag }}
+                            {{ branch_form.name }}
+                        </div>
+                        <div class="mb-3">
+                            {{ branch_form.location.label_tag }}
+                            {{ branch_form.location }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">مدير الفرع</label>
+                            {{ branch_form.manager }}
+                        </div>
+
+                        <div class="mb-3 border rounded p-3 bg-light">
+                            <div class="form-check form-switch mb-2">
+                                {{ branch_form.create_new_manager }}
+                                <label class="form-check-label" for="createNewManagerCheck">
+                                    أو إنشاء حساب مدير جديد الآن 👤
+                                </label>
+                            </div>
+                            
+                            <div id="newManagerFields" class="d-none">
+                                <div class="mb-2">
+                                    {{ branch_form.new_manager_username }}
+                                </div>
+                                <div class="mb-2">
+                                    {{ branch_form.new_manager_password }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ branch_form.waste_threshold.label_tag }}
+                            {{ branch_form.waste_threshold }}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ الفرع</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script to toggle new manager fields -->
+    <script>
+        document.getElementById('createNewManagerCheck').addEventListener('change', function() {
+            const fields = document.getElementById('newManagerFields');
+            if(this.checked) {
+                fields.classList.remove('d-none');
+            } else {
+                fields.classList.add('d-none');
+            }
+        });
+    </script>
 {% endblock %}

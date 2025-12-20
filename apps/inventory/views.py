@@ -16,6 +16,12 @@ def inventory_list(request):
 
 # دالة إضافة منتج
 def add_product(request):
+    # 🛡️ الحماية: المسموح فقط للمدير العام أو السوبر يوزر
+    if not (request.user.is_superuser or request.user.role == 'manager'):
+        from django.contrib import messages
+        messages.error(request, "عذراً، إضافة المنتجات من صلاحيات الإدارة العليا فقط.")
+        return redirect('inventory:inventory_list')
+
     if request.method == 'POST':
         form = ProductForm(request.POST)
         if form.is_valid():

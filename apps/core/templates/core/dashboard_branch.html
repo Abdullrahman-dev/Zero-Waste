@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Branch Dashboard - {{ branch.name }}{% endblock %}
+
+{% block content %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
+        <div class="d-flex align-items-center">
+            <h2 class="fs-2 m-0 fw-bold text-dark">لوحة تحكم الفرع</h2>
+            <span class="badge bg-success ms-3">{{ branch.name }}</span>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        
+        <!-- Quick Actions for Branch Manager -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> طلب جديد
+                    </button>
+                    <a href="/analytics/generate/{{ branch.id }}/" class="btn btn-warning text-dark">
+                        <i class="bi bi-lightning-charge"></i> فحص المخزون (AI)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 my-2">
+            <div class="col-md-6">
+                <div class="stat-card" style="border-right-color: #e74c3c;">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">خطر الهدر الحالي</p>
+                        <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
+                    </div>
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-shield-exclamation"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold">طلباتي المرسلة</p>
+                        <h2 class="fw-bold mb-0">{{ my_requests.count }}</h2>
+                    </div>
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-send"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-5">
+            <div class="col-lg-8">
+                <div class="content-panel h-100">
+                    <h5 class="fw-bold mb-4">📊 تقرير الذكاء الاصطناعي الأخير</h5>
+                    {% if latest_reports %}
+                        {% with report=latest_reports.0 %}
+                            <div class="alert alert-light border">
+                                <strong>تاريخ الفحص:</strong> {{ report.generated_date }} <br>
+                                <hr>
+                                <div style="white-space: pre-line;">
+                                    {{ report.ai_analysis|safe }}
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-robot fs-1"></i>
+                            <p class="mt-2">لم يتم إجراء فحص ذكي مؤخراً. اضغط على "فحص المخزون" أعلاه.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="content-panel h-100">
+                    <h5 class="fw-bold mb-4">حالة طلباتي</h5>
+                    <ul class="list-group list-group-flush">
+                    {% for req in my_requests %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">{{ req.created_at|date:"m-d" }}</small>
+                                <br>
+                                <strong>{{ req.type }}</strong>
+                            </div>
+                            {% if req.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">قيد الانتظار</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="badge bg-success">تمت الموافقة</span>
+                            {% else %}
+                                <span class="badge bg-danger">مرفوض</span>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">لا توجد طلبات سابقة.</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

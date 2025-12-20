@@ -42,3 +42,9 @@ class UserLoginView(LoginView):
             return reverse_lazy('inventory:inventory_list')
             
         return reverse_lazy('core:dashboard')
+
+def logout_view(request):
+    from django.contrib.auth import logout
+    logout(request)
+    messages.info(request, "تم تسجيل الخروج بنجاح. نراك قريباً! 👋")
+    return redirect('login')
