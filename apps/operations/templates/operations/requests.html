@@ -47,7 +47,14 @@
                         {% for req in requests %}
                         <tr>
                             <td class="ps-4 fw-bold">#{{ req.id }}</td>
-                            <td>{{ req.type }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold">{{ req.type }}</span>
+                                    <button class="btn btn-sm btn-link text-primary p-0 text-decoration-none" onclick="viewDetails('{{ req.details|escapejs }}', '{{ req.type|escapejs }}')">
+                                        <i class="bi bi-eye-fill"></i> <small>عرض</small>
+                                    </button>
+                                </div>
+                            </td>
                             <td><span class="badge bg-light text-dark border">{{ req.branch.name }}</span></td>
                             <td class="text-muted small">{{ req.created_at|date:"Y-m-d H:i" }}</td>
                             <td>
@@ -61,7 +68,13 @@
                             </td>
                             <td class="text-break" style="max-width: 200px;">
                                 {% if req.manager_response %}
-                                    <small class="text-dark"><i class="bi bi-chat-quote-fill text-primary me-1"></i> {{ req.manager_response }}</small>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-chat-quote-fill text-primary me-2"></i>
+                                        <span class="text-dark small text-truncate" style="max-width: 150px;">{{ req.manager_response }}</span>
+                                        <button class="btn btn-sm btn-link text-primary p-0 ms-1" onclick="viewDetails('{{ req.manager_response|escapejs }}', 'رد الإدارة على الطلب #{{ req.id }}')">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </button>
+                                    </div>
                                 {% else %}
                                     <span class="text-muted small">-</span>
                                 {% endif %}
@@ -98,6 +111,24 @@
     </div>
 </div>
 
+<!-- Modal: View Details -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="detailsModalTitle">تفاصيل التقرير</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="detailsModalContent" class="text-break"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: New Request (For Branch Managers) -->
 <div class="modal fade" id="newRequestModal" tabindex="-1">
     <div class="modal-dialog">
@@ -119,7 +150,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                     <button type="submit" class="btn btn-primary">إرسال التقرير</button>
                 </div>
             </form>
@@ -184,6 +215,14 @@
         .then(data => {
             location.reload();
         });
+    }
+
+    // 🆕 دالة عرض التفاصيل
+    function viewDetails(details, title) {
+        document.getElementById('detailsModalTitle').innerText = title;
+        document.getElementById('detailsModalContent').innerText = details;
+        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        modal.show();
     }
 </script>
 {% endblock %}

@@ -5,9 +5,21 @@ from .forms import ProductForm, StockItemForm
 
 
 def inventory_list(request):
-    # نستخدم select_related للأداء العالي
+    # 🛡️ العزل: نستخدم select_related للأداء العالي مع الفلترة الأمنية
     stock_items = StockItem.objects.select_related('product', 'branch').order_by('expiry_date')
+
+    # 1. إذا كان مدير شركة: يشوف مخزون كل فروعه
+    if request.user.role == 'manager' and hasattr(request.user, 'managed_company'):
+        stock_items = stock_items.filter(branch__company=request.user.managed_company)
     
+    # 2. إذا كان مدير فرع: يشوف مخزون فرعه فقط
+    elif request.user.role == 'branch_manager' and hasattr(request.user, 'managed_branch'):
+        stock_items = stock_items.filter(branch=request.user.managed_branch)
+        
+    # 3. إذا كان سوبر يوزر: يشوف الكل (إلا إذا أردنا حجبه أيضاً)
+    elif not request.user.is_superuser:
+         stock_items = stock_items.none() # منع الوصول لأي شخص آخر
+
     context = {
         'stock_items': stock_items, 
         'today': date.today(),
@@ -25,8 +37,11 @@ def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('inventory:inventory_list')  # ✅ تم التعديل هنا
+            product = form.save(commit=False)
+            if hasattr(request.user, 'managed_company'):
+                product.company = request.user.managed_company
+            product.save()
+            return redirect('inventory:inventory_list')
     else:
         form = ProductForm()
     

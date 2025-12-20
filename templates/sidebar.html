@@ -18,6 +18,10 @@
             <i class="bi bi-box-seam ms-2"></i> المخزون
         </a>
         
+        <a href="{% url 'analytics:waste_list' %}" class="list-group-item list-group-item-action {% if 'waste' in request.resolver_match.url_name %}active text-white{% else %}text-white-50{% endif %} bg-transparent">
+            <i class="bi bi-trash-fill ms-2"></i> سجل الهدر
+        </a>
+        
         {% if request.user.role == 'manager' or request.user.is_superuser %}
         <a href="{% url 'core:branch_list' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'branch_list' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-shop ms-2"></i> الفروع

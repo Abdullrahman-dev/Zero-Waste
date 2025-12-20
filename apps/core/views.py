@@ -64,10 +64,27 @@ def add_company_view(request):
     if request.method == 'POST':
         form = CompanyForm(request.POST)
         if form.is_valid():
-            company = form.save()
-            messages.success(request, f"تم إضافة شركة '{company.name}' بنجاح!")
+            company = form.save(commit=False)
+            
+            # --- منطق إنشاء/تعيين المدير الإجباري ---
+            new_username = form.cleaned_data.get('new_manager_username')
+            new_email = form.cleaned_data.get('new_manager_email')
+            new_password = form.cleaned_data.get('new_manager_password')
+            
+            # إنشاء مستخدم جديد كمدير شركة
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='manager')
+            company.manager = new_manager
+            success_msg = f"تم إضافة شركة '{company.name}' وإنشاء حساب المدير '{new_username}' ({new_email})."
+            
+            company.save()
+            messages.success(request, success_msg)
         else:
-            messages.error(request, "حدث خطأ أثناء إضافة الشركة. يرجى التحقق من البيانات.")
+            # عرض الأخطاء في الفورم
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
             
     return redirect('core:dashboard') # العودة للداشبورد دائماً
 
@@ -186,15 +203,15 @@ def add_branch_view(request):
         if form.is_valid():
             branch = form.save(commit=False)
             
-            # ... منطق إنشاء المستخدم الجديد ...
-            if form.cleaned_data.get('create_new_manager'):
-                username = form.cleaned_data.get('new_manager_username')
-                password = form.cleaned_data.get('new_manager_password')
-                
-                # إنشاء اليوزر بصلاحية مدير فرع
-                new_manager = User.objects.create_user(username=username, password=password, role='branch_manager')
-                branch.manager = new_manager
-                messages.success(request, f"تم إنشاء حساب للمدير '{username}' بنجاح.")
+            # --- منطق إنشاء/تعيين المدير الإجباري ---
+            new_username = form.cleaned_data.get('new_manager_username')
+            new_email = form.cleaned_data.get('new_manager_email')
+            new_password = form.cleaned_data.get('new_manager_password')
+            
+            # إنشاء اليوزر بصلاحية مدير فرع
+            new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='branch_manager')
+            branch.manager = new_manager
+            messages.success(request, f"تم إنشاء حساب للمدير '{new_username}' ({new_email}) بنجاح.")
 
             # تعيين الشركة تلقائياً
             if hasattr(request.user, 'managed_company'):

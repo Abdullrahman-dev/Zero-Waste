@@ -74,26 +74,16 @@
                             {{ branch_form.location.label_tag }}
                             {{ branch_form.location }}
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">مدير الفرع</label>
-                            {{ branch_form.manager }}
-                        </div>
-
                         <div class="mb-3 border rounded p-3 bg-light">
-                            <div class="form-check form-switch mb-2">
-                                {{ branch_form.create_new_manager }}
-                                <label class="form-check-label" for="createNewManagerCheck">
-                                    أو إنشاء حساب مدير جديد الآن 👤
-                                </label>
+                            <label class="form-label fw-bold mb-2">بيانات مدير الفرع الجديد (إجباري)</label>
+                            <div class="mb-2">
+                                {{ branch_form.new_manager_username }}
                             </div>
-                            
-                            <div id="newManagerFields" class="d-none">
-                                <div class="mb-2">
-                                    {{ branch_form.new_manager_username }}
-                                </div>
-                                <div class="mb-2">
-                                    {{ branch_form.new_manager_password }}
-                                </div>
+                            <div class="mb-2">
+                                {{ branch_form.new_manager_email }}
+                            </div>
+                            <div class="mb-2">
+                                {{ branch_form.new_manager_password }}
                             </div>
                         </div>
 

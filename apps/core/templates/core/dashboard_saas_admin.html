@@ -129,10 +129,18 @@
                             {{ company_form.name.label_tag }}
                             {{ company_form.name }}
                         </div>
-                        <div class="mb-3">
-                            {{ company_form.manager.label_tag }}
-                            {{ company_form.manager }}
-                            <div class="form-text">يمكنك اختيار مدير الآن أو تعيينه لاحقاً.</div>
+                        <div class="mb-3 border rounded p-3 bg-light">
+                            <label class="form-label fw-bold mb-2">بيانات المدير العام الجديد (إجباري)</label>
+                            <div class="mb-2">
+                                {{ company_form.new_manager_username }}
+                            </div>
+                            <div class="mb-2">
+                                {{ company_form.new_manager_email }}
+                            </div>
+                            <div class="mb-2">
+                                {{ company_form.new_manager_password }}
+                            </div>
+                             <div class="form-text">سيتم تعيين هذا المستخدم كمدير عام للشركة تلقائياً.</div>
                         </div>
                         <div class="mb-3 form-check">
                             {{ company_form.subscription_status }}

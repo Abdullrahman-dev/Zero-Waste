@@ -5,18 +5,20 @@ from .models import Product, StockItem
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'sku', 'category', 'unit']
+        fields = ['name', 'sku', 'category', 'unit', 'cost_price']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'مثال: برجر دجاج'}),
             'sku': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CHK-001'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'unit': forms.Select(attrs={'class': 'form-select'}),
+            'cost_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
         labels = {
             'name': 'اسم المنتج',
             'sku': 'رمز SKU',
             'category': 'التصنيف',
             'unit': 'وحدة القياس',
+            'cost_price': 'سعر التكلفة',
         }
 
 class StockItemForm(forms.ModelForm):
