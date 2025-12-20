@@ -23,6 +23,7 @@ class OperationalRequest(models.Model):
         choices=RequestStatus.choices, 
         default=RequestStatus.PENDING
     )
+    manager_response = models.TextField(blank=True, null=True, verbose_name="رد الإدارة")
     created_at = models.DateTimeField(auto_now_add=True)
 
 class SupportTicket(models.Model):

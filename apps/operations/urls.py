@@ -2,9 +2,11 @@
 from django.urls import path
 from . import views
 
+app_name = 'operations'
+
 urlpatterns = [
     path('', views.requests_list, name='requests_list'),
-    path('api/chart-data/', views.chart_data_api, name='chart_data_api'),
-    path('create-promo/<int:branch_id>/', views.create_promo_request, name='create_promo'),
+    path('new/', views.create_request_view, name='create_request'),
+    # path('create/<int:branch_id>/', views.create_promo_request, name='create_promo'), # لم نعد بحاجة لهذا
     path('review/<int:request_id>/<str:action>/', views.review_request, name='review_request'),
 ]
