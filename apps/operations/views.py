@@ -27,34 +27,49 @@ def requests_list(request):
         requests = OperationalRequest.objects.none()
         is_manager = False
 
+    # التحقق مما إذا كان هناك طلب مسبق (pre-filled) من التنبيهات
+    initial_data = {}
+    if 'type' in request.GET:
+        initial_data['type'] = request.GET['type']
+    if 'details' in request.GET:
+        initial_data['details'] = request.GET['details']
+    if 'branch_id' in request.GET:
+        initial_data['branch'] = request.GET['branch_id']
+
     context = {
         'requests': requests,
-        'request_form': OperationalRequestForm(),
+        'request_form': OperationalRequestForm(initial=initial_data, user=request.user),
         'is_manager': is_manager
     }
     return render(request, 'operations/requests.html', context)
 
-# 2. رفع تقرير جديد (لمدراء الفروع)
+# 2. رفع تقرير جديد
 def create_request_view(request):
     from .forms import OperationalRequestForm
     from django.contrib import messages
     
     if request.method == 'POST':
-        form = OperationalRequestForm(request.POST)
+        form = OperationalRequestForm(request.POST, user=request.user)
         if form.is_valid():
             try:
-                # التأكد أن المستخدم مدير فرع
-                branch = request.user.managed_branch
-                
                 op_request = form.save(commit=False)
-                op_request.branch = branch
                 op_request.submitted_by = request.user
                 op_request.status = 'PENDING'
+
+                # تحديد الفرع حسب الصلاحية
+                if hasattr(request.user, 'managed_branch'):
+                    op_request.branch = request.user.managed_branch
+                elif request.user.role == 'manager' and op_request.branch:
+                    # المدير اختار الفرع من القائمة
+                    pass 
+                else:
+                    messages.error(request, "عذراً، يجب تحديد الفرع.")
+                    return redirect('operations:requests_list')
+
                 op_request.save()
-                
-                messages.success(request, "تم رفع التقرير للإدارة بنجاح ✅")
-            except AttributeError:
-                messages.error(request, "عذراً، يجب أن تكون مديراً لفرع لرفع التقارير.")
+                messages.success(request, "تم رفع التقرير بنجاح ✅")
+            except Exception as e:
+                 messages.error(request, f"حدث خطأ: {e}")
         else:
             messages.error(request, "يرجى التحقق من البيانات.")
             

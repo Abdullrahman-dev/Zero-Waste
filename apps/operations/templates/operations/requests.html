@@ -148,6 +148,14 @@
                         {{ request_form.details.label_tag }}
                         {{ request_form.details }}
                     </div>
+                    {% if is_manager %}
+                    <div class="mb-3">
+                        {{ request_form.branch.label_tag }}
+                        {{ request_form.branch }}
+                    </div>
+                    {% else %}
+                        {{ request_form.branch }} <!-- Hidden for others if needed, though form handles it -->
+                    {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
@@ -217,12 +225,20 @@
         });
     }
 
-    // 🆕 دالة عرض التفاصيل
     function viewDetails(details, title) {
         document.getElementById('detailsModalTitle').innerText = title;
         document.getElementById('detailsModalContent').innerText = details;
         const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
         modal.show();
     }
+
+    // 🆕 Auto-open Modal if URL params exist (meaning autofill used)
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('type') || urlParams.has('details')) {
+             const newRequestModal = new bootstrap.Modal(document.getElementById('newRequestModal'));
+             newRequestModal.show();
+        }
+    });
 </script>
 {% endblock %}

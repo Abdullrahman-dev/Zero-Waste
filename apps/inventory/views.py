@@ -4,6 +4,9 @@ from datetime import date
 from .forms import ProductForm, StockItemForm 
 
 
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='login')
 def inventory_list(request):
     # 🛡️ العزل: نستخدم select_related للأداء العالي مع الفلترة الأمنية
     stock_items = StockItem.objects.select_related('product', 'branch').order_by('expiry_date')
@@ -27,6 +30,7 @@ def inventory_list(request):
     return render(request, 'inventory/list.html', context)
 
 # دالة إضافة منتج
+@login_required(login_url='login')
 def add_product(request):
     # 🛡️ الحماية: المسموح فقط للمدير العام أو السوبر يوزر
     if not (request.user.is_superuser or request.user.role == 'manager'):
@@ -48,6 +52,7 @@ def add_product(request):
     return render(request, 'inventory/add_product.html', {'form': form, 'title': 'إضافة منتج جديد'})
 
 # دالة إضافة مخزون
+@login_required(login_url='login')
 def add_stock_item(request):
     if request.method == 'POST':
         form = StockItemForm(request.POST)
@@ -60,6 +65,7 @@ def add_stock_item(request):
     return render(request, 'inventory/add_product.html', {'form': form, 'title': 'إضافة عنصر مخزون'})
 
 # ✏️ دالة تعديل المخزون
+@login_required(login_url='login')
 def edit_stock_item(request, pk):
     item = get_object_or_404(StockItem, pk=pk) # جبنا العنصر المطلوب
     

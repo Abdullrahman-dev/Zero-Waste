@@ -63,6 +63,35 @@
             </div>
         </div>
 
+        {% if low_stock_alerts %}
+        <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-2"></i>
+                <h5 class="alert-heading fw-bold m-0 text-dark">تنبيهات نقص المخزون</h5>
+            </div>
+            <p class="mb-2 text-muted">المنتجات التالية انخفضت كمياتها عن الحد المسموح به:</p>
+            <div class="d-flex flex-wrap gap-2">
+                {% for alert in low_stock_alerts %}
+                <div class="bg-white rounded-pill px-3 py-1 border border-warning d-flex align-items-center">
+                    <span class="fw-bold me-2">{{ alert.product.name }}</span>
+                    {% if is_manager %}
+                        <span class="badge bg-secondary me-2">{{ alert.branch.name|default:"-" }}</span>
+                    {% endif %}
+                    <span class="badge bg-danger rounded-pill">{{ alert.total_qty }} {{ alert.product.get_unit_display }}</span>
+                    <small class="text-muted ms-2 me-2">(الحد الأدنى: {{ alert.threshold }})</small>
+                    
+                    <a href="{% url 'operations:requests_list' %}?type=SUPPLY_REQUEST&details=طلب إعادة تموين: {{ alert.product.name }} (الكمية الحالية: {{ alert.total_qty }})&branch_id={{ alert.branch.id }}" 
+                       class="btn btn-sm btn-outline-warning rounded-circle d-flex align-items-center justify-content-center p-0" 
+                       style="width: 24px; height: 24px;"
+                       title="طلب تموين">
+                        <i class="bi bi-plus"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="row my-5">
             <!-- الرسم البياني وقائمة الطلبات -->
             <div class="col-lg-8">

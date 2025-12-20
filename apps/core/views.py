@@ -1,11 +1,11 @@
 # apps/core/views.py
 from django.shortcuts import render, redirect
-from django.db.models import Sum
-from django.http import JsonResponse # 👈 ضروري جداً عشان الـ API يشتغل
-from apps.core.models import Branch
+from django.db.models import Sum, F
+from django.http import JsonResponse
+from apps.core.models import Branch, RestaurantCompany
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
-from .models import Branch
+from apps.inventory.models import Product, StockItem, BranchStockSetting
 
 # 1. الدالة الرئيسية (أبقيناها كما هي dashboard_home)
 # 1. الدالة الرئيسية (Router) - تحدد أي داشبورد يظهر حسب الدور
@@ -107,6 +107,34 @@ def _company_dashboard(request):
     total_potential_loss = WasteReport.objects.filter(branch__in=branches).aggregate(sum=Sum('total_waste_value'))['sum'] or 0
     pending_requests = OperationalRequest.objects.filter(branch__in=branches, status='PENDING').order_by('-created_at')
 
+    # --- Low Stock Alerts Logic ---
+    # 1. جلب كل المنتجات التابعة للشركة
+    all_products = Product.objects.filter(company=company)
+    
+    # 2. جلب جميع إعدادات الفروع دفعة واحدة لتحسين الأداء
+    from apps.inventory.models import BranchStockSetting
+    branch_settings = BranchStockSetting.objects.filter(branch__in=branches).select_related('product', 'branch')
+    # تحويل الإعدادات إلى Dictionary لسهولة الوصول: {(branch_id, product_id): min_qty}
+    settings_map = {(s.branch.id, s.product.id): s.minimum_quantity for s in branch_settings}
+
+    low_stock_alerts = []
+    
+    for product in all_products:
+        # لكل منتج، نفحص مخزونه في كل فرع على حدة لأن الحد الأدنى قد يختلف
+        for branch in branches:
+            total_qty = StockItem.objects.filter(branch=branch, product=product).aggregate(sum=Sum('quantity'))['sum'] or 0
+            
+            # تحديد الحد الأدنى: إما الخاص بالفرع أو العام للمنتج
+            threshold = settings_map.get((branch.id, product.id), product.minimum_quantity)
+            
+            if total_qty <= threshold:
+                low_stock_alerts.append({
+                    'product': product,
+                    'branch': branch,
+                    'total_qty': total_qty,
+                    'threshold': threshold
+                })
+
     context = {
         'user_role': f"General Manager - {company.name}",
         'company': company,
@@ -114,11 +142,13 @@ def _company_dashboard(request):
         'total_potential_loss': total_potential_loss,
         'latest_reports': latest_reports,
         'pending_requests': pending_requests,
-        'is_manager': True, # هذا المتغير يفتح الأزرار الإدارية في القالب
+        'low_stock_alerts': low_stock_alerts,
+        'is_manager': True,
     }
     return render(request, 'core/dashboard_company.html', context)
 
 def _branch_dashboard(request):
+
     """
     Branch Dashboard: Similar to Main Dashboard but restricted to one branch and no admin actions.
     """
@@ -131,20 +161,45 @@ def _branch_dashboard(request):
     latest_reports = WasteReport.objects.filter(branch=branch).order_by('-generated_date')[:5]
     total_potential_loss = WasteReport.objects.filter(branch=branch).aggregate(sum=Sum('total_waste_value'))['sum'] or 0
     
-    # ملاحظة: في التصميم الجديد، مدير الفرع يشوف نفس شكل الداشبورد لكن بياناته محدود
-    # لن نظهر "طلباتي" في الويدجت الرئيسي لتوحيد الشكل، بل سنضعها في قسم جانبي أو صفحة مستقلة
-    # لكن سنمررها في الـ context
+    
+    # --- Low Stock Alerts for Branch ---
+
+    # منتجات الشركة فقط
+    branch_products = Product.objects.filter(company=branch.company)
+    
+    # جلب إعداد الفرع لهذا المنتج إن وجد
+    branch_settings = BranchStockSetting.objects.filter(branch=branch)
+    settings_map = {s.product.id: s.minimum_quantity for s in branch_settings}
+    
+    low_stock_alerts = []
+
+    for product in branch_products:
+        # حساب الكمية في هذا الفرع بالتحديد
+        qty_in_branch = StockItem.objects.filter(branch=branch, product=product).aggregate(sum=Sum('quantity'))['sum'] or 0
+        
+        # تحديد الحد الأدنى
+        threshold = settings_map.get(product.id, product.minimum_quantity)
+        
+        if qty_in_branch <= threshold:
+             low_stock_alerts.append({
+                'product': product,
+                'branch': branch, # عشان التوافق مع القالب
+                'total_qty': qty_in_branch,
+                'threshold': threshold
+            })
+
     my_requests = OperationalRequest.objects.filter(branch=branch).order_by('-created_at')[:5]
 
     context = {
         'user_role': f"Branch Manager - {branch.name}",
         'branch': branch, 
-        'total_branches': 1, # دائما 1 في نظر مدير الفرع
+        'total_branches': 1,
         'total_potential_loss': total_potential_loss,
         'latest_reports': latest_reports,
-        'pending_requests': [], # مدير الفرع لا يوافق على طلبات، لذا القائمة فارغة
+        'pending_requests': [], 
         'my_requests': my_requests,
-        'is_manager': False, # هذا يخفي أزرار الإضافة والتعديل
+        'low_stock_alerts': low_stock_alerts, # 👈 القائمة الجديدة
+        'is_manager': False,
     }
     # نستخدم نفس قالب الشركة لتوحيد الشكل، لكن مع قيود الصلاحيات
     return render(request, 'core/dashboard_company.html', context)
