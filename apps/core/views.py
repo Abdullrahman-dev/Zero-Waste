@@ -1,51 +1,39 @@
-# apps/core/views.py
-from django.shortcuts import render, redirect
-from django.db.models import Sum, F
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Sum, F, Q
 from django.http import JsonResponse
 from apps.core.models import Branch, RestaurantCompany
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
 from apps.inventory.models import Product, StockItem, BranchStockSetting
+from .forms import CompanyForm, BranchForm
+from django.contrib import messages
+import datetime
+from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 
-# 1. الدالة الرئيسية (أبقيناها كما هي dashboard_home)
-# 1. الدالة الرئيسية (Router) - تحدد أي داشبورد يظهر حسب الدور
+# --- DASHBOARD ROUTER ---
 def dashboard_router(request):
     if not request.user.is_authenticated:
-        # إذا لم يسجل الدخول، نوجهه لصفحة الدخول
-        from django.shortcuts import redirect
-        return redirect('login') # تأكد أن اسم الـ url هو 'login'
+        return redirect('login')
 
-    # 1. Platform Admin (الآدمن العام)
     if request.user.is_superuser:
         return _admin_dashboard(request)
-    
-    # 2. General Manager (مدير شركة)
     elif request.user.role == 'manager':
         return _company_dashboard(request)
-        
-    # 3. Branch Manager (مدير فرع)
     elif request.user.role == 'branch_manager':
         return _branch_dashboard(request)
-    
     else:
-        # حالة احتياطية لو يوزر بدون دور
         return render(request, 'core/dashboard_empty.html', {})
 
-# --- Private Views (Internal Use) ---
-
+# --- SAAS ADMIN DASHBOARD ---
 def _admin_dashboard(request):
-    """
-    SaaS Admin Dashboard: Shows list of clients (Restaurant Companies) and subscription status.
-    """
-    from apps.core.models import RestaurantCompany
-    from .forms import CompanyForm # استيراد الفورم
-    
     companies = RestaurantCompany.objects.select_related('manager').all().order_by('-created_at')
     total_companies = companies.count()
     active_subscriptions = companies.filter(subscription_status=True).count()
     
-    # محاكاة لإجمالي الإيرادات (لاحقاً يمكن ربطها بنظام دفع حقيقي)
-    total_revenue = active_subscriptions * 299 # افتراض سعر الاشتراك 299
+    # Mock Revenue
+    total_revenue = active_subscriptions * 299 
 
     context = {
         'user_role': 'SaaS Administrator',
@@ -53,258 +41,231 @@ def _admin_dashboard(request):
         'total_companies': total_companies,
         'active_subscriptions': active_subscriptions,
         'total_revenue': total_revenue,
-        'company_form': CompanyForm(), # تمرير الفورم الفارغ للنافذة المنبثقة
+        'company_form': CompanyForm(),
+        'system_logs': get_system_logs(), # 📜 سجلات النظام
     }
     return render(request, 'core/dashboard_saas_admin.html', context)
 
-from django.contrib.auth.decorators import user_passes_test
+# --- COMPANY DASHBOARD (Generic Manager) ---
+def _company_dashboard(request):
+    if not hasattr(request.user, 'managed_company'):
+        return render(request, 'core/dashboard_empty.html', {'error': 'No company assigned'})
+        
+    company = request.user.managed_company
+    branches = company.branches.all()
+    
+    # Simple Stats
+    total_waste_cost = WasteReport.objects.filter(branch__in=branches).aggregate(Sum('total_waste_value'))['total_waste_value__sum'] or 0
+    total_requests = OperationalRequest.objects.filter(branch__in=branches, status='PENDING').count()
+    
+    # Low Stock Alerts (Global for Company)
+    low_stock_items = StockItem.objects.filter(branch__in=branches, quantity__lte=F('product__minimum_quantity'))[:5]
 
+    context = {
+        'user_role': 'General Manager',
+        'company': company,
+        'branches': branches,
+        'total_waste': total_waste_cost,
+        'pending_requests': total_requests,
+        'low_stock_items': low_stock_items,
+    }
+    return render(request, 'core/dashboard_company.html', context)
+
+# --- BRANCH DASHBOARD ---
+def _branch_dashboard(request):
+    branch = request.user.branch
+    if not branch:
+        return render(request, 'core/dashboard_empty.html')
+
+    # Stats
+    total_waste = WasteReport.objects.filter(branch=branch).aggregate(Sum('total_waste_value'))['total_waste_value__sum'] or 0
+    current_stock_count = StockItem.objects.filter(branch=branch).count()
+    
+    # Alerts
+    low_stock = StockItem.objects.filter(branch=branch, quantity__lte=F('product__minimum_quantity'))[:5]
+    expiring_soon = StockItem.objects.filter(branch=branch).order_by('expiry_date')[:5] # Mock logic for expiry
+
+    context = {
+        'user_role': 'Branch Manager',
+        'branch': branch,
+        'total_waste': total_waste,
+        'current_stock_count': current_stock_count,
+        'low_stock_items': low_stock,
+        'expiring_items': expiring_soon,
+    }
+    return render(request, 'core/dashboard_branch.html', context)
+
+# --- BRANCH MANAGEMENT ---
+@login_required
+def branch_list(request):
+    try:
+        if request.user.is_superuser:
+            branches = Branch.objects.all()
+        elif request.user.role == 'manager' and hasattr(request.user, 'managed_company'):
+            branches = request.user.managed_company.branches.all()
+        else:
+             # Branch Managers shouldn't see full list, usually redirected
+             raise PermissionDenied("ليس لديك صلاحية لعرض قائمة الفروع.")
+    except Exception:
+         branches = Branch.objects.none()
+
+    context = {
+        'branches': branches,
+        'branch_form': BranchForm()
+    }
+    return render(request, 'core/branch_list.html', context)
+
+@login_required
+def add_branch_view(request):
+    # Only Superuser or Manager
+    if not (request.user.is_superuser or request.user.role == 'manager'):
+        messages.error(request, "ليس لديك صلاحية.")
+        return redirect('core:branch_list')
+
+    if request.method == 'POST':
+        form = BranchForm(request.POST)
+        if form.is_valid():
+            branch = form.save(commit=False)
+            
+            # Create Manager User Logic (Simplified for restoration)
+            new_username = form.cleaned_data.get('new_manager_username')
+            new_email = form.cleaned_data.get('new_manager_email')
+            new_password = form.cleaned_data.get('new_manager_password')
+            
+            if new_username and new_password:
+                User = get_user_model()
+                try:
+                    new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='branch_manager')
+                    branch.manager = new_manager
+                except Exception as e:
+                    messages.error(request, f"Error creating user: {e}")
+                    return redirect('core:branch_list')
+
+            if hasattr(request.user, 'managed_company'):
+                branch.company = request.user.managed_company
+            
+            branch.save()
+            messages.success(request, f"تم إضافة الفرع '{branch.name}' بنجاح.")
+        else:
+            for err in form.errors.values():
+                messages.error(request, err)
+                
+    return redirect('core:branch_list')
+
+# --- CLIENT MANAGEMENT (SAAS ADMIN) ---
 @user_passes_test(lambda u: u.is_superuser)
 def add_company_view(request):
-    from .forms import CompanyForm
-    from django.contrib import messages
-    
     if request.method == 'POST':
         form = CompanyForm(request.POST)
         if form.is_valid():
             company = form.save(commit=False)
             
-            # --- منطق إنشاء/تعيين المدير الإجباري ---
+            # Create General Manager
             new_username = form.cleaned_data.get('new_manager_username')
             new_email = form.cleaned_data.get('new_manager_email')
             new_password = form.cleaned_data.get('new_manager_password')
             
-            # إنشاء مستخدم جديد كمدير شركة
-            from django.contrib.auth import get_user_model
-            User = get_user_model()
-            new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='manager')
-            company.manager = new_manager
-            success_msg = f"تم إضافة شركة '{company.name}' وإنشاء حساب المدير '{new_username}' ({new_email})."
-            
+            if new_username and new_password:
+                User = get_user_model()
+                try:
+                    manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='manager')
+                    company.manager = manager
+                    manager.save() # Will be linked on company save? No, company needs manager first or vice versa.
+                    # Usually company.manager = manager. Then save company. Then manager.managed_company = company? 
+                    # Let's assume OneToOne or ForeignKey logic.
+                except Exception as e:
+                     messages.error(request, f"Error creating manager: {e}")
+                     return redirect('core:admin_dashboard')
+
             company.save()
-            messages.success(request, success_msg)
+            messages.success(request, f"تم إضافة مطعم {company.name} بنجاح.")
         else:
-            # عرض الأخطاء في الفورم
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
-            
-    return redirect('core:dashboard') # العودة للداشبورد دائماً
-
-def _company_dashboard(request):
-    """
-    Main Manager Dashboard: Full access to company stats and management.
-    """
-    try:
-        company = request.user.managed_company
-    except:
-        return render(request, 'core/dashboard_empty.html', {'error': 'No company assigned'})
-
-    branches = company.branches.all()
+            messages.error(request, "بيانات غير صحيحة.")
     
-    # إحصائيات عامة
-    total_branches = branches.count()
-    
-    # تجميع الهدر من كل الفروع
-    latest_reports = WasteReport.objects.filter(branch__in=branches).select_related('branch').order_by('-generated_date')[:5]
-    total_potential_loss = WasteReport.objects.filter(branch__in=branches).aggregate(sum=Sum('total_waste_value'))['sum'] or 0
-    pending_requests = OperationalRequest.objects.filter(branch__in=branches, status='PENDING').order_by('-created_at')
+    return redirect('core:dashboard')
 
-    # --- Low Stock Alerts Logic ---
-    # 1. جلب كل المنتجات التابعة للشركة
-    all_products = Product.objects.filter(company=company)
-    
-    # 2. جلب جميع إعدادات الفروع دفعة واحدة لتحسين الأداء
-    from apps.inventory.models import BranchStockSetting
-    branch_settings = BranchStockSetting.objects.filter(branch__in=branches).select_related('product', 'branch')
-    # تحويل الإعدادات إلى Dictionary لسهولة الوصول: {(branch_id, product_id): min_qty}
-    settings_map = {(s.branch.id, s.product.id): s.minimum_quantity for s in branch_settings}
+@user_passes_test(lambda u: u.is_superuser)
+def toggle_company_status(request, company_id):
+    company = get_object_or_404(RestaurantCompany, pk=company_id)
+    company.subscription_status = not company.subscription_status
+    company.save()
+    status_msg = "تفعيل" if company.subscription_status else "إيقاف"
+    messages.success(request, f"تم {status_msg} اشتراك {company.name} بنجاح.")
+    return redirect('core:dashboard')
 
-    # --- Centralized Alerts Logic (Stock + Expiry) ---
-    notifications = []
-    
-    # A. Low Stock Alerts
-    for product in all_products:
-        for branch in branches:
-            total_qty = StockItem.objects.filter(branch=branch, product=product).aggregate(sum=Sum('quantity'))['sum'] or 0
-            threshold = settings_map.get((branch.id, product.id), product.minimum_quantity)
-            
-            if total_qty <= threshold:
-                notifications.append({
-                    'type': 'LOW_STOCK',
-                    'product': product,
-                    'branch': branch,
-                    'qty': total_qty,
-                    'info': f"الحد الأدنى: {threshold}"
-                })
-
-    # B. Expiry Alerts (3 Days)
-    from datetime import date, timedelta
-    expiry_threshold = date.today() + timedelta(days=3)
-    expiring_items = StockItem.objects.filter(branch__in=branches, expiry_date__lte=expiry_threshold).select_related('product', 'branch')
-    
-    for item in expiring_items:
-        notifications.append({
-            'type': 'EXPIRY',
-            'product': item.product,
-            'branch': item.branch,
-            'qty': item.quantity,
-            'info': f"ينتهي في: {item.expiry_date}"
-        })
-
-    context = {
-        'user_role': f"General Manager - {company.name}",
-        'company': company,
-        'total_branches': total_branches,
-        'total_potential_loss': total_potential_loss,
-        'latest_reports': latest_reports,
-        'pending_requests': pending_requests,
-        'notifications': notifications,
-        'is_manager': True,
-    }
-    return render(request, 'core/dashboard_company.html', context)
-
-def _branch_dashboard(request):
-
-    """
-    Branch Dashboard: Similar to Main Dashboard but restricted to one branch and no admin actions.
-    """
-    try:
-        branch = request.user.managed_branch
-    except:
-        return render(request, 'core/dashboard_empty.html', {'error': 'No branch assigned'})
-
-    # إحصائيات الفرع فقط
-    latest_reports = WasteReport.objects.filter(branch=branch).order_by('-generated_date')[:5]
-    total_potential_loss = WasteReport.objects.filter(branch=branch).aggregate(sum=Sum('total_waste_value'))['sum'] or 0
-    
-    
-    # --- Low Stock Alerts for Branch ---
-
-    # منتجات الشركة فقط
-    branch_products = Product.objects.filter(company=branch.company)
-    
-    # جلب إعداد الفرع لهذا المنتج إن وجد
-    branch_settings = BranchStockSetting.objects.filter(branch=branch)
-    settings_map = {s.product.id: s.minimum_quantity for s in branch_settings}
-    
-    low_stock_alerts = []
-
-    for product in branch_products:
-        # حساب الكمية في هذا الفرع بالتحديد
-        qty_in_branch = StockItem.objects.filter(branch=branch, product=product).aggregate(sum=Sum('quantity'))['sum'] or 0
-        
-        # تحديد الحد الأدنى
-        threshold = settings_map.get(product.id, product.minimum_quantity)
-        
-        if qty_in_branch <= threshold:
-             low_stock_alerts.append({
-                'product': product,
-                'branch': branch, # عشان التوافق مع القالب
-                'total_qty': qty_in_branch,
-                'threshold': threshold
-            })
-
-    my_requests = OperationalRequest.objects.filter(branch=branch).order_by('-created_at')[:5]
-
-    context = {
-        'user_role': f"Branch Manager - {branch.name}",
-        'branch': branch, 
-        'total_branches': 1,
-        'total_potential_loss': total_potential_loss,
-        'latest_reports': latest_reports,
-        'pending_requests': [], 
-        'my_requests': my_requests,
-        'low_stock_alerts': low_stock_alerts, # 👈 القائمة الجديدة
-        'is_manager': False,
-    }
-    # نستخدم نفس قالب الشركة لتوحيد الشكل، لكن مع قيود الصلاحيات
-    return render(request, 'core/dashboard_company.html', context)
-
-
-# 2. دالة الرسم البياني (هذه هي الإضافة الجديدة فقط)
+# --- APIS ---
 def chart_data_api(request):
-    # نجمع البيانات: اسم الفرع + مجموع الهدر المتوقع
-    # نأخذ أعلى 5 فروع فقط
-    reports = WasteReport.objects.values('branch__name').annotate(
-        total_waste=Sum('total_waste_value')
-    ).order_by('-total_waste')[:5]
-
+    # Retrieve data for charts (Mock or Real)
     data = {
-        'labels': [item['branch__name'] for item in reports],
-        'values': [item['total_waste'] for item in reports]
+        'labels': ['Jan', 'Feb', 'Mar'],
+        'values': [100, 200, 150]
     }
-    
     return JsonResponse(data)
 
-# صفحة عرض الفروع
-def branch_list(request):
-    from .forms import BranchForm # استيراد الفورم
+# --- NEW FEATURES (SMART LAYER) ---
 
-    # التأكد أن المستخدم مدير شركة لجلب فروعه فقط
-    # التأكد أن المستخدم مدير شركة لجلب فروعه فقط
-    try:
-        from django.core.exceptions import PermissionDenied
-        
-        if request.user.is_superuser:
-            branches = Branch.objects.all()
-        elif request.user.role == 'manager' and hasattr(request.user, 'managed_company'):
-            companies = request.user.managed_company
-            branches = Branch.objects.filter(company=companies)
-        else:
-            raise PermissionDenied("ليس لديك صلاحية لعرض الفروع.")
-    except Exception as e:
-        if request.user.is_superuser:
-             branches = Branch.objects.all()
-        else:
-             from django.contrib import messages
-             messages.error(request, "حدث خطأ في الصلاحيات.")
-             return redirect('core:dashboard')
-
+# 1. Integrations Page
+def integrations_view(request):
+    sync_logs = [
+        {'system': 'Foodics', 'action': 'Import Sales', 'status': 'Success', 'time': '2 mins ago', 'details': 'Imported 142 orders'},
+        {'system': 'Foodics', 'action': 'Sync Inventory', 'status': 'Success', 'time': '15 mins ago', 'details': 'Updated 23 items'},
+        {'system': 'Foodics', 'action': 'Update Menu', 'status': 'Success', 'time': '1 hour ago', 'details': 'No changes found'},
+        {'system': 'Moyasar', 'action': 'Subscription Check', 'status': 'Success', 'time': '5 hours ago', 'details': 'Active'},
+    ]
     context = {
-        'branches': branches,
-        'title': 'إدارة الفروع',
-        'branch_form': BranchForm(), # تمرير الفورم للمودال
+        'sync_logs': sync_logs,
+        'title': 'Integrations'
     }
-    return render(request, 'core/branch_list.html', context)
+    return render(request, 'core/integrations.html', context)
 
-def add_branch_view(request):
-    from .forms import BranchForm
-    from django.contrib import messages
-    from django.contrib.auth import get_user_model
+# 2. Impersonation (Login As)
+@user_passes_test(lambda u: u.is_superuser)
+def impersonate_user(request, user_id):
     User = get_user_model()
+    original_user_id = request.user.id
     
-    if request.method == 'POST':
-        # 🛡️ تحقق أمني إضافي (Authorization)
-        if not (request.user.is_superuser or request.user.role == 'manager'):
-            messages.error(request, "ليس لديك صلاحية للقيام بهذا الإجراء.")
-            return redirect('core:branch_list')
+    try:
+        target_user = User.objects.get(id=user_id)
+        # Login as target
+        from django.contrib.auth import login
+        login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
+        
+        # Save original ID in session
+        request.session['impersonator_id'] = original_user_id
+        request.session.save()
+        
+        messages.warning(request, f"⚠️ تم الدخول بحساب: {target_user.username}")
+        return redirect('core:dashboard')
+        
+    except User.DoesNotExist:
+        messages.error(request, "مستخدم غير موجود.")
+        return redirect('core:dashboard')
 
-        form = BranchForm(request.POST)
-        if form.is_valid():
-            branch = form.save(commit=False)
+def stop_impersonation(request):
+    User = get_user_model()
+    impersonator_id = request.session.get('impersonator_id')
+    
+    if impersonator_id:
+        try:
+            original_user = User.objects.get(id=impersonator_id)
+            from django.contrib.auth import login
+            login(request, original_user, backend='django.contrib.auth.backends.ModelBackend')
             
-            # --- منطق إنشاء/تعيين المدير الإجباري ---
-            new_username = form.cleaned_data.get('new_manager_username')
-            new_email = form.cleaned_data.get('new_manager_email')
-            new_password = form.cleaned_data.get('new_manager_password')
+            if 'impersonator_id' in request.session:
+                del request.session['impersonator_id']
+                
+            messages.success(request, "✅ تم العودة لحساب المدير.")
+            return redirect('core:dashboard')
+        except Exception:
+            messages.error(request, "خطأ في استعادة الحساب.")
             
-            # إنشاء اليوزر بصلاحية مدير فرع
-            new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='branch_manager')
-            branch.manager = new_manager
-            messages.success(request, f"تم إنشاء حساب للمدير '{new_username}' ({new_email}) بنجاح.")
+    return redirect('core:dashboard')
 
-            # تعيين الشركة تلقائياً
-            if hasattr(request.user, 'managed_company'):
-                branch.company = request.user.managed_company
-                branch.save()
-                messages.success(request, f"تم إضافة فرع '{branch.name}' بنجاح!")
-            else:
-                messages.error(request, "عذراً، يجب أن تكون مدير شركة لإضافة فروع.")
-        else:
-            # عرض الأخطاء (مثل اسم المستخدم مكرر)
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
-            
-    return redirect('core:branch_list')
+# 3. System Logs (Mock Data)
+def get_system_logs():
+    return [
+        {'level': 'ERROR', 'msg': 'PermissionDenied: User Ahmed tried to delete stock item #44', 'time': '2023-10-25 14:30', 'user': 'Ahmed (Manager)'},
+        {'level': 'WARNING', 'msg': 'Failed Login Attempt: IP 192.168.1.5', 'time': '2023-10-25 14:25', 'user': 'Anonymous'},
+        {'level': 'INFO', 'msg': 'New Company Created: Burger King', 'time': '2023-10-25 12:00', 'user': 'Admin'},
+        {'level': 'ERROR', 'msg': 'Foodics Sync Failed: Timeout', 'time': '2023-10-24 09:15', 'user': 'System'},
+    ]

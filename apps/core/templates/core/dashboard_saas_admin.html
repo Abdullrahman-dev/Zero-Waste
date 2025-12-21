@@ -97,13 +97,61 @@
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-dark">تعديل</button>
-                                        <button class="btn btn-sm btn-outline-danger">إيقاف</button>
+                                        <a href="{% url 'core:toggle_company_status' company.id %}" class="btn btn-sm {% if company.subscription_status %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                            {% if company.subscription_status %}إيقاف{% else %}تفعيل{% endif %}
+                                        </a>
+                                        {% if company.manager %}
+                                        <a href="{% url 'core:impersonate_user' company.manager.id %}" class="btn btn-sm btn-warning" title="دخول كـ هذا المستخدم">
+                                            <i class="bi bi-person-fill-lock"></i> دخول
+                                        </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
                                     <td colspan="5" class="text-center py-4 text-muted">لا يوجد مشتركين حالياً.</td>
                                 </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs Section -->
+        <div class="row my-4">
+            <div class="col-12">
+                <div class="content-panel">
+                    <h5 class="fw-bold mb-4 text-danger">📜 سجل أخطاء النظام (System Logs)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الوقت</th>
+                                    <th>المستوى</th>
+                                    <th>الرسالة</th>
+                                    <th>المستخدم</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for log in system_logs %}
+                                <tr>
+                                    <td class="text-muted small">{{ log.time }}</td>
+                                    <td>
+                                        {% if log.level == 'ERROR' %}
+                                            <span class="badge bg-danger">ERROR</span>
+                                        {% elif log.level == 'WARNING' %}
+                                            <span class="badge bg-warning text-dark">WARN</span>
+                                        {% else %}
+                                            <span class="badge bg-info">INFO</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="font-monospace small">{{ log.msg }}</td>
+                                    <td>Start{{ log.user }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted">لا توجد سجلات.</td></tr>
                             {% endfor %}
                             </tbody>
                         </table>

@@ -1,11 +1,27 @@
 <div id="sidebar-wrapper">
     <div class="sidebar-heading">♻️ Zero Waste</div>
+    
+    {% if request.session.impersonator_id %}
+    <div class="alert alert-warning m-2 p-2 small text-center rounded-3 border-warning">
+        <i class="bi bi-eye-fill"></i> وضع المشاهدة
+        <br>
+        <a href="{% url 'core:stop_impersonation' %}" class="btn btn-sm btn-dark w-100 mt-2">
+            العودة للأدمن 🔙
+        </a>
+    </div>
+    {% endif %}
+
     <div class="list-group list-group-flush mt-3">
         <a href="/" class="list-group-item list-group-item-action">
             <i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم
         </a>
         
         {% if request.user.role == 'manager' or request.user.is_superuser %}
+        <!-- Integrations Link -->
+        <a href="{% url 'core:integrations' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'integrations' %}active text-white{% else %}text-white-50{% endif %}">
+            <i class="bi bi-hdd-network ms-2"></i> ربط الأنظمة
+        </a>
+
         <a href="{% url 'inventory:add_product' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_product' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-plus-circle-dotted ms-2"></i> إضافة منتج جديد
         </a>
