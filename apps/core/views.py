@@ -117,23 +117,37 @@ def _company_dashboard(request):
     # تحويل الإعدادات إلى Dictionary لسهولة الوصول: {(branch_id, product_id): min_qty}
     settings_map = {(s.branch.id, s.product.id): s.minimum_quantity for s in branch_settings}
 
-    low_stock_alerts = []
+    # --- Centralized Alerts Logic (Stock + Expiry) ---
+    notifications = []
     
+    # A. Low Stock Alerts
     for product in all_products:
-        # لكل منتج، نفحص مخزونه في كل فرع على حدة لأن الحد الأدنى قد يختلف
         for branch in branches:
             total_qty = StockItem.objects.filter(branch=branch, product=product).aggregate(sum=Sum('quantity'))['sum'] or 0
-            
-            # تحديد الحد الأدنى: إما الخاص بالفرع أو العام للمنتج
             threshold = settings_map.get((branch.id, product.id), product.minimum_quantity)
             
             if total_qty <= threshold:
-                low_stock_alerts.append({
+                notifications.append({
+                    'type': 'LOW_STOCK',
                     'product': product,
                     'branch': branch,
-                    'total_qty': total_qty,
-                    'threshold': threshold
+                    'qty': total_qty,
+                    'info': f"الحد الأدنى: {threshold}"
                 })
+
+    # B. Expiry Alerts (3 Days)
+    from datetime import date, timedelta
+    expiry_threshold = date.today() + timedelta(days=3)
+    expiring_items = StockItem.objects.filter(branch__in=branches, expiry_date__lte=expiry_threshold).select_related('product', 'branch')
+    
+    for item in expiring_items:
+        notifications.append({
+            'type': 'EXPIRY',
+            'product': item.product,
+            'branch': item.branch,
+            'qty': item.quantity,
+            'info': f"ينتهي في: {item.expiry_date}"
+        })
 
     context = {
         'user_role': f"General Manager - {company.name}",
@@ -142,7 +156,7 @@ def _company_dashboard(request):
         'total_potential_loss': total_potential_loss,
         'latest_reports': latest_reports,
         'pending_requests': pending_requests,
-        'low_stock_alerts': low_stock_alerts,
+        'notifications': notifications,
         'is_manager': True,
     }
     return render(request, 'core/dashboard_company.html', context)

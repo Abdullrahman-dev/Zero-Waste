@@ -34,3 +34,18 @@ class StockItemForm(forms.ModelForm):
             'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'batch_id': forms.TextInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(StockItemForm, self).__init__(*args, **kwargs)
+        if user:
+            if hasattr(user, 'managed_company'):
+                self.fields['product'].queryset = Product.objects.filter(company=user.managed_company)
+                self.fields['branch'].queryset = user.managed_company.branches.all()
+            elif hasattr(user, 'managed_branch'):
+                # Branch Managers should only add stock to their own branch? Or maybe they don't have this permission?
+                # Assuming for now they might, limiting to their branch and company products
+                self.fields['product'].queryset = Product.objects.filter(company=user.managed_branch.company)
+                self.fields['branch'].queryset = user.managed_company.branches.filter(id=user.managed_branch.id)
+                self.fields['branch'].initial = user.managed_branch
+                self.fields['branch'].widget.attrs['readonly'] = True # Optional: lock it

@@ -55,12 +55,12 @@ def add_product(request):
 @login_required(login_url='login')
 def add_stock_item(request):
     if request.method == 'POST':
-        form = StockItemForm(request.POST)
+        form = StockItemForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('inventory:inventory_list')  # ✅ تم التعديل هنا
     else:
-        form = StockItemForm()
+        form = StockItemForm(user=request.user)
     
     return render(request, 'inventory/add_product.html', {'form': form, 'title': 'إضافة عنصر مخزون'})
 
@@ -70,12 +70,12 @@ def edit_stock_item(request, pk):
     item = get_object_or_404(StockItem, pk=pk) # جبنا العنصر المطلوب
     
     if request.method == 'POST':
-        form = StockItemForm(request.POST, instance=item) # مررنا instance عشان يعبي البيانات القديمة
+        form = StockItemForm(request.POST, instance=item, user=request.user) # مررنا instance عشان يعبي البيانات القديمة
         if form.is_valid():
             form.save()
             return redirect('inventory:inventory_list')
     else:
-        form = StockItemForm(instance=item) # عبئ النموذج بالبيانات الحالية
+        form = StockItemForm(instance=item, user=request.user) # عبئ النموذج بالبيانات الحالية
     
     return render(request, 'inventory/add_product.html', {
         'form': form, 

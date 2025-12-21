@@ -26,71 +26,131 @@
     <div class="container-fluid px-4">
         
         <div class="row g-4 my-2">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">الفروع النشطة</p>
-                        <h2 class="fw-bold mb-0">{{ total_branches }}</h2>
+            <!-- Stats Column -->
+            <div class="col-lg-8">
+                 <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div>
+                                <p class="text-muted mb-1 fw-bold">الفروع النشطة</p>
+                                <h2 class="fw-bold mb-0">{{ total_branches }}</h2>
+                            </div>
+                            <div class="icon-box bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-shop"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="icon-box bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-shop"></i>
+
+                    <div class="col-md-6">
+                        <div class="stat-card" style="border-right-color: #e74c3c;">
+                            <div>
+                                <p class="text-muted mb-1 fw-bold">إجمالي الهدر المالي</p>
+                                <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
+                            </div>
+                            <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-graph-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                         <div class="stat-card" style="border-right-color: #f1c40f;">
+                            <div>
+                                <p class="text-muted mb-1 fw-bold">طلبات معلقة</p>
+                                <h2 class="fw-bold mb-0">{{ pending_requests|length }}</h2>
+                            </div>
+                            <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="stat-card" style="border-right-color: #e74c3c;">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">إجمالي الهدر المالي</p>
-                        <h2 class="fw-bold mb-0 text-danger">{{ total_potential_loss }} ر.س</h2>
+            
+            <!-- Notifications Center Column -->
+            <div class="col-lg-4">
+                 <div class="content-panel h-100 p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                         <h5 class="fw-bold m-0 text-dark">🔔 مركز التنبيهات</h5>
+                         <span id="notificationCount" class="badge bg-danger rounded-pill">{{ notifications|length }}</span>
                     </div>
-                    <div class="icon-box bg-danger bg-opacity-10 text-danger">
-                        <i class="bi bi-graph-down"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="stat-card" style="border-right-color: #f1c40f;">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">طلبات معلقة</p>
-                        <h2 class="fw-bold mb-0">{{ pending_requests|length }}</h2>
-                    </div>
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-inbox"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {% if low_stock_alerts %}
-        <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
-            <div class="d-flex align-items-center mb-2">
-                <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-2"></i>
-                <h5 class="alert-heading fw-bold m-0 text-dark">تنبيهات نقص المخزون</h5>
-            </div>
-            <p class="mb-2 text-muted">المنتجات التالية انخفضت كمياتها عن الحد المسموح به:</p>
-            <div class="d-flex flex-wrap gap-2">
-                {% for alert in low_stock_alerts %}
-                <div class="bg-white rounded-pill px-3 py-1 border border-warning d-flex align-items-center">
-                    <span class="fw-bold me-2">{{ alert.product.name }}</span>
-                    {% if is_manager %}
-                        <span class="badge bg-secondary me-2">{{ alert.branch.name|default:"-" }}</span>
-                    {% endif %}
-                    <span class="badge bg-danger rounded-pill">{{ alert.total_qty }} {{ alert.product.get_unit_display }}</span>
-                    <small class="text-muted ms-2 me-2">(الحد الأدنى: {{ alert.threshold }})</small>
                     
-                    <a href="{% url 'operations:requests_list' %}?type=SUPPLY_REQUEST&details=طلب إعادة تموين: {{ alert.product.name }} (الكمية الحالية: {{ alert.total_qty }})&branch_id={{ alert.branch.id }}" 
-                       class="btn btn-sm btn-outline-warning rounded-circle d-flex align-items-center justify-content-center p-0" 
-                       style="width: 24px; height: 24px;"
-                       title="طلب تموين">
-                        <i class="bi bi-plus"></i>
-                    </a>
-                </div>
-                {% endfor %}
+                    <div style="max-height: 250px; overflow-y: auto;" class="pe-2">
+                        {% for alert in notifications %}
+                        <div class="alert-item d-flex align-items-start p-2 mb-2 rounded border bg-light position-relative">
+                            <div class="me-3 mt-1">
+                                {% if alert.type == 'LOW_STOCK' %}
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+                                {% else %}
+                                    <i class="bi bi-hourglass-split text-danger fs-4"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between pe-4"> <!-- Added padding for close button -->
+                                    <div>
+                                        {% if alert.type == 'LOW_STOCK' %}
+                                            <span class="badge bg-warning text-dark mb-1">نقص مخزون</span>
+                                        {% else %}
+                                            <span class="badge bg-danger mb-1">صلاحية</span>
+                                        {% endif %}
+                                        <h6 class="mb-0 fw-bold d-inline-block ms-1">{{ alert.product.name }}</h6>
+                                    </div>
+                                    <span class="badge bg-secondary align-self-start" style="font-size: 0.7rem;">{{ alert.branch.name }}</span>
+                                </div>
+                                <p class="mb-1 small text-muted mt-1">
+                                    {% if alert.type == 'LOW_STOCK' %}
+                                        الكمية الحالية: <span class="text-danger fw-bold">{{ alert.qty }}</span>
+                                    {% else %}
+                                        تنتهي الصلاحية: <span class="text-danger fw-bold">{{ alert.qty }}</span>
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ alert.info }}</small>
+                            </div>
+                            
+
+                            <!-- Close Button -->
+                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="dismissAlert(this)"></button>
+
+                            {% if not is_manager and alert.type == 'LOW_STOCK' %}
+                            <div class="ms-2 align-self-center">
+                                <a href="{% url 'operations:requests_list' %}?type=SUPPLY_REQUEST&details=طلب إعادة تموين: {{ alert.product.name }}&branch_id={{ alert.branch.id }}" 
+                                   class="btn btn-sm btn-outline-primary p-0 d-flex justify-content-center align-items-center" 
+                                   style="width: 24px; height: 24px;">
+                                    <i class="bi bi-plus"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-check-circle fs-1 text-success opacity-50"></i>
+                            <p class="mt-2 small">كل شيء على ما يرام!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                 </div>
             </div>
         </div>
-        {% endif %}
+
+<script>
+    function dismissAlert(btn) {
+        // 1. Remove the alert item
+        const item = btn.closest('.alert-item');
+        item.remove();
+        
+        // 2. Update the counter
+        const badge = document.getElementById('notificationCount');
+        if (badge) {
+            let count = parseInt(badge.innerText);
+            count--;
+            if (count <= 0) {
+                badge.style.display = 'none';
+            } else {
+                badge.innerText = count;
+            }
+        }
+    }
+</script>
 
         <div class="row my-5">
             <!-- الرسم البياني وقائمة الطلبات -->
