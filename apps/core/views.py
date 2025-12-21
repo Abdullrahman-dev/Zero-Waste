@@ -57,6 +57,9 @@ def _admin_dashboard(request):
     }
     return render(request, 'core/dashboard_saas_admin.html', context)
 
+from django.contrib.auth.decorators import user_passes_test
+
+@user_passes_test(lambda u: u.is_superuser)
 def add_company_view(request):
     from .forms import CompanyForm
     from django.contrib import messages
@@ -239,15 +242,24 @@ def branch_list(request):
     from .forms import BranchForm # استيراد الفورم
 
     # التأكد أن المستخدم مدير شركة لجلب فروعه فقط
+    # التأكد أن المستخدم مدير شركة لجلب فروعه فقط
     try:
-        company = request.user.managed_company
-        branches = Branch.objects.filter(company=company)
-    except:
-        # إذا كان سوبر يوزر، نعرض كل الفروع (لأغراض الادمن)
+        from django.core.exceptions import PermissionDenied
+        
         if request.user.is_superuser:
             branches = Branch.objects.all()
+        elif request.user.role == 'manager' and hasattr(request.user, 'managed_company'):
+            companies = request.user.managed_company
+            branches = Branch.objects.filter(company=companies)
         else:
-            branches = Branch.objects.none()
+            raise PermissionDenied("ليس لديك صلاحية لعرض الفروع.")
+    except Exception as e:
+        if request.user.is_superuser:
+             branches = Branch.objects.all()
+        else:
+             from django.contrib import messages
+             messages.error(request, "حدث خطأ في الصلاحيات.")
+             return redirect('core:dashboard')
 
     context = {
         'branches': branches,

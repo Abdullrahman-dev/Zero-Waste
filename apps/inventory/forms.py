@@ -1,6 +1,6 @@
-# apps/inventory/forms.py
 from django import forms
 from .models import Product, StockItem
+from apps.core.models import Branch
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -39,13 +39,24 @@ class StockItemForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super(StockItemForm, self).__init__(*args, **kwargs)
         if user:
-            if hasattr(user, 'managed_company'):
-                self.fields['product'].queryset = Product.objects.filter(company=user.managed_company)
-                self.fields['branch'].queryset = user.managed_company.branches.all()
-            elif hasattr(user, 'managed_branch'):
-                # Branch Managers should only add stock to their own branch? Or maybe they don't have this permission?
-                # Assuming for now they might, limiting to their branch and company products
-                self.fields['product'].queryset = Product.objects.filter(company=user.managed_branch.company)
-                self.fields['branch'].queryset = user.managed_company.branches.filter(id=user.managed_branch.id)
-                self.fields['branch'].initial = user.managed_branch
-                self.fields['branch'].widget.attrs['readonly'] = True # Optional: lock it
+            try:
+                if hasattr(user, 'managed_company'):
+                    company = user.managed_company
+                    self.fields['product'].queryset = Product.objects.filter(company=company)
+                    self.fields['branch'].queryset = company.branches.all()
+                elif hasattr(user, 'managed_branch'):
+                    branch = user.managed_branch
+                    self.fields['product'].queryset = Product.objects.filter(company=branch.company)
+                    self.fields['branch'].queryset = branch.company.branches.filter(id=branch.id)
+                    self.fields['branch'].initial = branch
+                    self.fields['branch'].widget.attrs['readonly'] = True
+            except Exception:
+                # Fallback for safer error handling (e.g., if user is superuser or data inconsistency)
+                # We can choose to show nothing or everything. For safety, let's show nothing or log it.
+                # If superuser, maybe show all?
+                if user.is_superuser:
+                    self.fields['product'].queryset = Product.objects.all()
+                    self.fields['branch'].queryset = Branch.objects.all() # Need implicit import or model ref
+                else:
+                    self.fields['product'].queryset = Product.objects.none()
+                    self.fields['branch'].queryset = Product.objects.none() # Empty queryset

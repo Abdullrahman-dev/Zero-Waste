@@ -28,6 +28,52 @@
         {% endfor %}
     {% endif %}
 
+    <!-- Filter Tabs & Options -->
+    <div class="row align-items-center mb-3 g-2">
+        <!-- Status Tabs -->
+        <div class="col-md-auto">
+            <div class="d-flex gap-2">
+                <a href="?status=ALL&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'ALL' %}btn-dark{% else %}btn-outline-secondary bg-white{% endif %}">
+                    الكل
+                </a>
+                <a href="?status=PENDING&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'PENDING' %}btn-warning text-dark{% else %}btn-outline-secondary bg-white{% endif %}">
+                    قيد الانتظار
+                </a>
+                <a href="?status=APPROVED&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'APPROVED' %}btn-success{% else %}btn-outline-secondary bg-white{% endif %}">
+                    مقبول
+                </a>
+                <a href="?status=REJECTED&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'REJECTED' %}btn-danger{% else %}btn-outline-secondary bg-white{% endif %}">
+                    مرفوض
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced Filters (Company/Branch) -->
+        <div class="col-md ms-auto">
+            <form method="GET" class="d-flex gap-2 justify-content-md-end">
+                <input type="hidden" name="status" value="{{ active_status }}">
+                
+                {% if user.is_superuser %}
+                <select name="company_id" class="form-select rounded-pill" style="max-width: 200px;" onchange="this.form.submit()">
+                    <option value="">كل الشركات</option>
+                    {% for company in companies %}
+                        <option value="{{ company.id }}" {% if selected_company|stringformat:"s" == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                
+                {% if user.is_superuser or is_manager %}
+                <select name="branch_id" class="form-select rounded-pill" style="max-width: 200px;" onchange="this.form.submit()">
+                    <option value="">كل الفروع</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if selected_branch|stringformat:"s" == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-0">
             <div class="table-responsive">

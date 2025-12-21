@@ -67,15 +67,27 @@ def add_stock_item(request):
 # ✏️ دالة تعديل المخزون
 @login_required(login_url='login')
 def edit_stock_item(request, pk):
-    item = get_object_or_404(StockItem, pk=pk) # جبنا العنصر المطلوب
+    item = get_object_or_404(StockItem, pk=pk)
     
+    # 🛡️ الأمن: التحقق من الملكية (Tenant Isolation)
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        if request.user.role == 'manager':
+            if not hasattr(request.user, 'managed_company') or item.branch.company != request.user.managed_company:
+                raise PermissionDenied("ليس لديك صلاحية لتعديل هذا العنصر.")
+        elif request.user.role == 'branch_manager':
+            if not hasattr(request.user, 'managed_branch') or item.branch != request.user.managed_branch:
+                raise PermissionDenied("ليس لديك صلاحية لتعديل هذا العنصر.")
+        else:
+             raise PermissionDenied("غير مصرح لك.")
+
     if request.method == 'POST':
-        form = StockItemForm(request.POST, instance=item, user=request.user) # مررنا instance عشان يعبي البيانات القديمة
+        form = StockItemForm(request.POST, instance=item, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('inventory:inventory_list')
     else:
-        form = StockItemForm(instance=item, user=request.user) # عبئ النموذج بالبيانات الحالية
+        form = StockItemForm(instance=item, user=request.user)
     
     return render(request, 'inventory/add_product.html', {
         'form': form, 
@@ -83,8 +95,21 @@ def edit_stock_item(request, pk):
     })
 
 # 🗑️ دالة حذف المخزون
+@login_required(login_url='login')
 def delete_stock_item(request, pk):
     item = get_object_or_404(StockItem, pk=pk)
+    
+    # 🛡️ الأمن: التحقق من الملكية قبل الحذف
+    if not request.user.is_superuser:
+        from django.core.exceptions import PermissionDenied
+        if request.user.role == 'manager':
+            if not hasattr(request.user, 'managed_company') or item.branch.company != request.user.managed_company:
+                raise PermissionDenied("ليس لديك صلاحية لحذف هذا العنصر.")
+        elif request.user.role == 'branch_manager':
+            # مدراء الفروع لا يحذفون (اختياري، لكن آمن)
+             raise PermissionDenied("حذف العناصر يتطلب صلاحية مدير عام.")
+        else:
+             raise PermissionDenied("غير مصرح لك.")
     
     if request.method == 'POST':
         item.delete()
