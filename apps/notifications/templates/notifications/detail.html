@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- زر العودة -->
+            <div class="mb-4">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-right"></i> العودة
+                </a>
+            </div>
+
+            <!-- بطاقة الإشعار -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex align-items-center">
+                        {% if notification.notification_type == 'system_update' %}
+                        <i class="bi bi-arrow-up-circle fs-3 me-3"></i>
+                        {% elif notification.notification_type == 'welcome' %}
+                        <i class="bi bi-hand-thumbs-up fs-3 me-3"></i>
+                        {% elif notification.notification_type == 'alert' %}
+                        <i class="bi bi-exclamation-triangle fs-3 me-3"></i>
+                        {% else %}
+                        <i class="bi bi-info-circle fs-3 me-3"></i>
+                        {% endif %}
+                        <div>
+                            <h4 class="mb-0">{{ notification.title }}</h4>
+                            <small>{{ notification.get_notification_type_display }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- معلومات الإشعار -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="row text-muted small">
+                            <div class="col-md-6">
+                                <i class="bi bi-calendar"></i>
+                                <strong>التاريخ:</strong> {{ notification.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <i class="bi bi-person"></i>
+                                <strong>من:</strong> مسؤول النظام
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- محتوى الرسالة -->
+                    <div class="notification-content">
+                        <h5 class="text-primary mb-3">الرسالة:</h5>
+                        <div class="message-body" style="white-space: pre-line; line-height: 1.8;">
+                            {{ notification.message }}
+                        </div>
+                    </div>
+
+                    <!-- معلومات إضافية إذا كان مرتبط بتحديث -->
+                    {% if notification.related_update %}
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-warning mb-2">
+                            <i class="bi bi-clock"></i> موعد التحديث المجدول
+                        </h6>
+                        <p class="mb-0 fs-5 fw-bold text-dark">
+                            {{ notification.related_update.scheduled_time|date:"Y-m-d H:i" }}
+                        </p>
+                        <small class="text-muted">يرجى حفظ عملك قبل هذا الموعد</small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-success">
+                            <i class="bi bi-check2"></i> تم القراءة
+                        </span>
+                        <small class="text-muted">
+                            تم الإرسال {{ notification.created_at|timesince }} مضت
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-content {
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .message-body {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border-right: 4px solid #0d6efd;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.5rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+</style>
+{% endblock %}

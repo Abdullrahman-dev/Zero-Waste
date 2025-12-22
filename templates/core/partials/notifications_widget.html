@@ -1,0 +1,127 @@
+<!-- Notifications Widget -->
+<div class="content-panel">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+            🔔 الإشعارات
+            {% if unread_notifications_count > 0 %}
+            <span class="badge bg-danger rounded-pill">{{ unread_notifications_count }}</span>
+            {% endif %}
+        </h5>
+        <a href="#" class="text-muted small">عرض الكل</a>
+    </div>
+
+    {% if notifications %}
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+            data-notification-id="{{ notification.id }}">
+            <div class="d-flex align-items-start">
+                <div class="notification-icon me-3">
+                    {% if notification.notification_type == 'system_update' %}
+                    <i class="bi bi-arrow-up-circle text-info"></i>
+                    {% elif notification.notification_type == 'welcome' %}
+                    <i class="bi bi-hand-thumbs-up text-success"></i>
+                    {% elif notification.notification_type == 'alert' %}
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    {% else %}
+                    <i class="bi bi-info-circle text-primary"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 fw-bold">{{ notification.title }}</h6>
+                    <p class="mb-1 text-muted small">{{ notification.message|truncatewords:15 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ notification.created_at|timesince }} مضت</small>
+                        <a href="{% url 'notifications:detail' notification.id %}"
+                            class="btn btn-sm btn-link text-primary p-0">
+                            <i class="bi bi-eye"></i> عرض التفاصيل
+                        </a>
+                    </div>
+                </div>
+                {% if not notification.is_read %}
+                <button class="btn btn-sm btn-link text-primary mark-as-read" data-id="{{ notification.id }}">
+                    <i class="bi bi-check2"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="bi bi-bell-slash text-muted" style="font-size: 2rem;"></i>
+        <p class="text-muted mt-2 mb-0">لا توجد إشعارات جديدة</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .notifications-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+    }
+
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .notification-item.unread {
+        background-color: #e3f2fd;
+        border-right: 3px solid #2196f3;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-icon {
+        font-size: 1.5rem;
+    }
+
+    .mark-as-read {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+<script>
+    // Mark notification as read
+    document.querySelectorAll('.mark-as-read').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const notificationId = this.dataset.id;
+
+            fetch(`/notifications/mark-read/${notificationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const item = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                        item.classList.remove('unread');
+                        this.remove();
+
+                        // Update badge count
+                        const badge = document.querySelector('.badge.bg-danger');
+                        if (badge) {
+                            const count = parseInt(badge.textContent) - 1;
+                            if (count > 0) {
+                                badge.textContent = count;
+                            } else {
+                                badge.remove();
+                            }
+                        }
+                    }
+                });
+        });
+    });
+</script>

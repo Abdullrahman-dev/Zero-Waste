@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}تقليل الخسائر - Zero Waste{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex align-items-center justify-content-between my-4">
+        <div>
+            <h1 class="fs-2 fw-bold text-success">تقليل الخسائر وتوصيات الشراء</h1>
+            <p class="text-muted mb-0">خطة مقترحة لمشتريات الأسبوع القادم بناءً على تحليل الهدر الشهري</p>
+        </div>
+        <button class="btn btn-outline-primary rounded-pill px-4" onclick="window.print()">
+            <i class="bi bi-printer"></i> طباعة التقرير
+        </button>
+    </div>
+
+    {% if suggestions %}
+    <div class="row g-4">
+        {% for item in suggestions %}
+        <div class="col-md-6 col-lg-4">
+            <div
+                class="card border-0 shadow-sm h-100 {% if item.action_type == 'critical' %}border-start border-5 border-danger{% else %}border-start border-5 border-warning{% endif %}">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="fw-bold mb-0">{{ item.product }}</h5>
+                        {% if item.action_type == 'critical' %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">إجراء فوري</span>
+                        {% else %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">مراجعة</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between text-muted small mb-1">
+                            <span>خسارة آخر 30 يوم:</span>
+                            <span class="fw-bold text-dark">{{ item.total_loss_30d }} ر.س</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>متوسط الهدر الأسبوعي:</span>
+                            <span class="fw-bold text-danger">{{ item.weekly_waste_avg }} {{ item.unit }}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 text-center">
+                        <p class="small text-muted mb-1"><i class="bi bi-cart-x me-1"></i> توصية الأسبوع القادم:</p>
+                        <h6 class="fw-bold text-success mb-0">{{ item.recommendation }}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="mb-3">
+            <i class="bi bi-shield-check text-success display-1"></i>
+        </div>
+        <h3 class="fw-bold">أداء ممتاز!</h3>
+        <p class="text-muted">لا توجد توصيات تقليل حالياً، معدلات الهدر لديك منخفضة جداً.</p>
+    </div>
+    {% endif %}
+
+    <div class="alert alert-info mt-5 border-0 shadow-sm d-flex align-items-center">
+        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+        <div>
+            <strong>كيف يعمل هذا التقرير؟</strong>
+            <p class="mb-0 small">نقوم بتحليل كميات الهدر لآخر 30 يوم لكل منتج، وحساب المتوسط الأسبوعي للهدر، ثم نقترح
+                عليك خصم هذه الكمية من طلبية الأسبوع القادم لتجنب الفائض.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

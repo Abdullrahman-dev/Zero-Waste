@@ -1,25 +1,51 @@
 <div id="sidebar-wrapper">
     <div class="sidebar-heading">♻️ Zero Waste</div>
+
+    {% if request.session.impersonator_id %}
+    <div class="alert alert-warning m-2 p-2 small text-center rounded-3 border-warning">
+        <i class="bi bi-eye-fill"></i> وضع المشاهدة
+        <br>
+        <a href="{% url 'core:stop_impersonation' %}" class="btn btn-sm btn-dark w-100 mt-2">
+            العودة للأدمن 🔙
+        </a>
+    </div>
+    {% endif %}
+
     <div class="list-group list-group-flush mt-3">
         <a href="/" class="list-group-item list-group-item-action">
             <i class="bi bi-speedometer2 ms-2"></i> لوحة التحكم
         </a>
-        
+
         {% if request.user.role == 'manager' or request.user.is_superuser %}
-        <a href="{% url 'inventory:add_product' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_product' %}active text-white{% else %}text-white-50{% endif %}">
+        <!-- Integrations Link -->
+        <a href="{% url 'core:integrations' %}"
+            class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'integrations' %}active text-white{% else %}text-white-50{% endif %}">
+            <i class="bi bi-hdd-network ms-2"></i> ربط الأنظمة
+        </a>
+
+        <a href="{% url 'inventory:add_product' %}"
+            class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_product' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-plus-circle-dotted ms-2"></i> إضافة منتج جديد
         </a>
         {% endif %}
 
-        <a href="{% url 'inventory:add_stock_item' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_stock_item' %}active text-white{% else %}text-white-50{% endif %}">
+        <a href="{% url 'inventory:add_stock_item' %}"
+            class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'add_stock_item' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-box-arrow-in-down ms-2"></i> إضافة للمخزون
         </a>
-        <a href="{% url 'inventory:inventory_list' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
+        <a href="{% url 'inventory:inventory_list' %}"
+            class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
             <i class="bi bi-box-seam ms-2"></i> المخزون
         </a>
-        
+
+        <a href="{% url 'analytics:waste_list' %}"
+            class="list-group-item list-group-item-action {% if 'waste' in request.resolver_match.url_name %}active text-white{% else %}text-white-50{% endif %} bg-transparent">
+            <i class="bi bi-trash-fill ms-2"></i> سجل الهدر
+        </a>
+
         {% if request.user.role == 'manager' or request.user.is_superuser %}
-        <a href="{% url 'core:branch_list' %}" class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'branch_list' %}active text-white{% else %}text-white-50{% endif %}">
+        <a href="{% url 'core:branch_list' %}"
+            class="list-group-item list-group-item-action bg-transparent {% if request.resolver_match.url_name == 'branch_list' %}active text-white{% else %}text-white-50{% endif %}">
             <i class="bi bi-shop ms-2"></i> الفروع
         </a>
         {% endif %}
@@ -30,7 +56,7 @@
         <a href="/operations/" class="list-group-item list-group-item-action">
             <i class="bi bi-list-check ms-2"></i> العمليات
         </a>
-        
+
         <div class="mt-auto border-top pt-3">
             <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger bg-transparent">
                 <i class="bi bi-box-arrow-right ms-2"></i> تسجيل خروج

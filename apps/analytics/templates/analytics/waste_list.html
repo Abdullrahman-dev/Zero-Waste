@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}سجل الهدر - Zero Waste{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex align-items-center justify-content-between my-4">
+        <div>
+            <h1 class="fs-2 fw-bold text-danger">🗑️ سجل الهدر والخسائر</h1>
+            <p class="text-muted mb-0">متابعة دقيقة لكل ما يتم هدره في الفرع</p>
+        </div>
+        <a href="{% url 'analytics:log_waste' %}" class="btn btn-danger rounded-pill px-4">
+            <i class="bi bi-plus-lg"></i> تسجيل هدر جديد
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">التاريخ</th>
+                            <th>الفرع</th>
+                            <th>المنتج</th>
+                            <th>الكمية</th>
+                            <th>السبب</th>
+                            <th>المسؤول</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="ps-4">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ log.branch.name|default:"-" }}</td>
+                            <td class="fw-bold">{{ log.product.name }}</td>
+                            <td><span class="badge bg-danger bg-opacity-10 text-danger">{{ log.quantity }}
+                                    {{log.product.get_unit_display }}</span></td>
+                            <td>{{ log.get_reason_display }}</td>
+                            <td>{{ log.submitted_by.username }}</td>
+                            <td class="text-muted small">{{ log.notes|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-check-circle fs-1 d-block mb-3 text-success opacity-50"></i>
+                                ممتاز! لا يوجد هدر مسجل.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

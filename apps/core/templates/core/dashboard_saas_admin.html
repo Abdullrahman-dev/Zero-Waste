@@ -4,149 +4,213 @@
 {% block title %}SaaS Administration - Zero Waste{% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
-        <div class="d-flex align-items-center">
-            <h2 class="fs-2 m-0 fw-bold text-dark">SaaS Administration</h2>
-            <span class="badge bg-dark ms-3">Platform Admin</span>
-        </div>
-        <div class="ms-auto">
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
-                <i class="bi bi-plus-lg"></i> اشتراك جديد
-            </button>
-        </div>
-    </nav>
+<nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
+    <div class="d-flex align-items-center">
+        <h2 class="fs-2 m-0 fw-bold text-dark">SaaS Administration</h2>
+        <span class="badge bg-dark ms-3">Platform Admin</span>
+    </div>
+    <div class="ms-auto d-flex gap-2">
+        <a href="{% url 'core:saas_notifications' %}" class="btn btn-warning rounded-pill px-4">
+            <i class="bi bi-bell-fill"></i> مركز الإشعارات
+        </a>
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+            <i class="bi bi-plus-lg"></i> اشتراك جديد
+        </button>
+    </div>
+</nav>
 
-    <div class="container-fluid px-4">
-        
-        <div class="row g-4 my-2">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">إجمالي المشتركين</p>
-                        <h2 class="fw-bold mb-0">{{ total_companies }}</h2>
-                    </div>
-                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-building"></i>
-                    </div>
+<div class="container-fluid px-4">
+
+    <div class="row g-4 my-2">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div>
+                    <p class="text-muted mb-1 fw-bold">إجمالي المشتركين</p>
+                    <h2 class="fw-bold mb-0">{{ total_companies }}</h2>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">الاشتراكات النشطة</p>
-                        <h2 class="fw-bold mb-0 text-success">{{ active_subscriptions }}</h2>
-                    </div>
-                    <div class="icon-box bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <p class="text-muted mb-1 fw-bold">الإيرادات الشهرية (تقديري)</p>
-                        <h2 class="fw-bold mb-0">{{ total_revenue }} ر.س</h2>
-                    </div>
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-currency-dollar"></i>
-                    </div>
+                <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-building"></i>
                 </div>
             </div>
         </div>
 
-        <div class="row my-4">
-            <div class="col-12">
-                <div class="content-panel">
-                    <h5 class="fw-bold mb-4">🏢 قائمة العملاء (المطاعم)</h5>
-                    <div class="table-responsive">
-                        <table class="table table-custom align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>اسم المطعم</th>
-                                    <th>المدير المسؤول</th>
-                                    <th>تاريخ الانضمام</th>
-                                    <th>حالة الاشتراك</th>
-                                    <th>إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div>
+                    <p class="text-muted mb-1 fw-bold">الاشتراكات النشطة</p>
+                    <h2 class="fw-bold mb-0 text-success">{{ active_subscriptions }}</h2>
+                </div>
+                <div class="icon-box bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div>
+                    <p class="text-muted mb-1 fw-bold">الإيرادات الشهرية (تقديري)</p>
+                    <h2 class="fw-bold mb-0">{{ total_revenue }} ر.س</h2>
+                </div>
+                <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row my-4">
+        <div class="col-12">
+            <div class="content-panel">
+                <h5 class="fw-bold mb-4">🏢 قائمة العملاء (المطاعم)</h5>
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>اسم المطعم</th>
+                                <th>المدير المسؤول</th>
+                                <th>تاريخ الانضمام</th>
+                                <th>حالة الاشتراك</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {% for company in companies %}
-                                <tr>
-                                    <td class="fw-bold">{{ company.name }}</td>
-                                    <td>
-                                        {% if company.manager %}
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-light rounded-circle p-1 me-2 text-center" style="width: 30px; height: 30px;">
-                                                    <small>{{ company.manager.username|slice:":1" }}</small>
-                                                </div>
-                                                {{ company.manager.get_full_name|default:company.manager.username }}
-                                            </div>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ company.created_at|date:"d/m/Y" }}</td>
-                                    <td>
-                                        {% if company.subscription_status %}
-                                            <span class="badge bg-success bg-opacity-10 text-success">نشط</span>
-                                        {% else %}
-                                            <span class="badge bg-danger bg-opacity-10 text-danger">منتهي</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-dark">تعديل</button>
-                                        <button class="btn btn-sm btn-outline-danger">إيقاف</button>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td class="fw-bold">{{ company.name }}</td>
+                                <td>
+                                    {% if company.manager %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle p-1 me-2 text-center"
+                                            style="width: 30px; height: 30px;">
+                                            <small>{{ company.manager.username|slice:":1" }}</small>
+                                        </div>
+                                        {{ company.manager.get_full_name|default:company.manager.username }}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ company.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if company.subscription_status %}
+                                    <span class="badge bg-success bg-opacity-10 text-success">نشط</span>
+                                    {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger">منتهي</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-dark">تعديل</button>
+                                    <a href="{% url 'core:toggle_company_status' company.id %}"
+                                        class="btn btn-sm {% if company.subscription_status %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                        {% if company.subscription_status %}إيقاف{% else %}تفعيل{% endif %}
+                                    </a>
+                                    {% if company.manager %}
+                                    <a href="{% url 'core:impersonate_user' company.manager.id %}"
+                                        class="btn btn-sm btn-warning" title="دخول كـ هذا المستخدم">
+                                        <i class="bi bi-person-fill-lock"></i> دخول
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">لا يوجد مشتركين حالياً.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">لا يوجد مشتركين حالياً.</td>
+                            </tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Modal: Add New Company -->
-    <div class="modal fade" id="addCompanyModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{% url 'core:add_company' %}" method="POST">
-                    {% csrf_token %}
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold">إضافة شركة / مطعم جديد</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            {{ company_form.name.label_tag }}
-                            {{ company_form.name }}
-                        </div>
-                        <div class="mb-3">
-                            {{ company_form.manager.label_tag }}
-                            {{ company_form.manager }}
-                            <div class="form-text">يمكنك اختيار مدير الآن أو تعيينه لاحقاً.</div>
-                        </div>
-                        <div class="mb-3 form-check">
-                            {{ company_form.subscription_status }}
-                            <label class="form-check-label" for="{{ company_form.subscription_status.id_for_label }}">
-                                اشتراك نشط
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-primary">حفظ وإضافة</button>
-                    </div>
-                </form>
+    <!-- System Logs Section -->
+    <div class="row my-4">
+        <div class="col-12">
+            <div class="content-panel">
+                <h5 class="fw-bold mb-4 text-danger">📜 سجل أخطاء النظام (System Logs)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>الوقت</th>
+                                <th>المستوى</th>
+                                <th>الرسالة</th>
+                                <th>المستخدم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in system_logs %}
+                            <tr>
+                                <td class="text-muted small">{{ log.time }}</td>
+                                <td>
+                                    {% if log.level == 'ERROR' %}
+                                    <span class="badge bg-danger">ERROR</span>
+                                    {% elif log.level == 'WARNING' %}
+                                    <span class="badge bg-warning text-dark">WARN</span>
+                                    {% else %}
+                                    <span class="badge bg-info">INFO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-monospace small">{{ log.msg }}</td>
+                                <td>Start{{ log.user }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">لا توجد سجلات.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
+</div>
+
+<!-- Modal: Add New Company -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{% url 'core:add_company' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">إضافة شركة / مطعم جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ company_form.name.label_tag }}
+                        {{ company_form.name }}
+                    </div>
+                    <div class="mb-3 border rounded p-3 bg-light">
+                        <label class="form-label fw-bold mb-2">بيانات المدير العام الجديد (إجباري)</label>
+                        <div class="mb-2">
+                            {{ company_form.new_manager_username }}
+                        </div>
+                        <div class="mb-2">
+                            {{ company_form.new_manager_email }}
+                        </div>
+                        <div class="mb-2">
+                            {{ company_form.new_manager_password }}
+                        </div>
+                        <div class="form-text">سيتم تعيين هذا المستخدم كمدير عام للشركة تلقائياً.</div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ company_form.subscription_status }}
+                        <label class="form-check-label" for="{{ company_form.subscription_status.id_for_label }}">
+                            اشتراك نشط
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ وإضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

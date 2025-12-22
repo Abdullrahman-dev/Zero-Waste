@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ربط الأنظمة (Integrations){% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">🔌 ربط الأنظمة (Integrations)</h2>
+            <p class="text-muted">إدارة الربط مع أنظمة نقاط البيع والمحاسبة.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary" onclick="window.location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i> تحديث الحالة
+            </button>
+        </div>
+    </div>
+
+    <!-- Integrations Grid -->
+    <div class="row g-4 mb-4">
+        
+        <!-- Foodics Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 position-relative overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-light p-3 rounded-3">
+                           <!-- Placeholder for Logo -->
+                           <h4 class="fw-bold text-purple mb-0" style="color: #550486;">Foodics</h4>
+                        </div>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> متصل (Connected)
+                        </span>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-2">نظام فودكس (POS)</h5>
+                    <p class="text-muted small mb-4">يتم سحب المبيعات والمخزون والمنتجات تلقائياً.</p>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-clock-history me-1"></i> آخر تحديث: <span class="fw-bold text-dark">قبل دقيقتين</span>
+                        </small>
+                        <button class="btn btn-sm btn-dark rounded-pill px-3">إعدادات</button>
+                    </div>
+                </div>
+                <div class="position-absolute top-0 start-0 w-100 h-100 bg-success opacity-10" style="pointer-events: none; opacity: 0.02;"></div>
+            </div>
+        </div>
+
+        <!-- Add New Integration Card (Placeholder) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-2 border-dashed shadow-none h-100 rounded-4 d-flex align-items-center justify-content-center bg-light" style="min-height: 200px; cursor: pointer;">
+                <div class="text-center text-muted">
+                    <i class="bi bi-plus-circle display-4 mb-2"></i>
+                    <p class="fw-medium">إضافة نظام جديد</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Sync Log Section -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-activity me-2 text-primary"></i> سجل العمليات الأخيرة (Sync Log)</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 text-secondary small text-uppercase">النظام</th>
+                        <th class="border-0 text-secondary small text-uppercase">العملية</th>
+                        <th class="border-0 text-secondary small text-uppercase">الحالة</th>
+                        <th class="border-0 text-secondary small text-uppercase">الوقت</th>
+                        <th class="border-0 text-secondary small text-uppercase">التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in sync_logs %}
+                    <tr>
+                        <td><span class="fw-bold text-dark">{{ log.system }}</span></td>
+                        <td>{{ log.action }}</td>
+                        <td>
+                            <span class="badge bg-success-subtle text-success rounded-pill">
+                                <i class="bi bi-check-lg me-1"></i> {{ log.status }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">{{ log.time }}</td>
+                        <td class="text-muted small">{{ log.details }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">لا توجد عمليات مؤخراً</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

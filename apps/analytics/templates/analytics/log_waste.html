@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل هدر - Zero Waste{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-danger text-white py-3 rounded-top-4">
+                    <h4 class="fw-bold mb-0"><i class="bi bi-trash-fill"></i> تسجيل عنصر تالف/مهدر</h4>
+                </div>
+                <div class="card-body p-4 bg-light bg-opacity-10">
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                        <div>
+                            تنبيه: سيتم خصم الكمية المسجلة من المخزون فوراً.
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger btn-lg">تسجيل الهدر</button>
+                            <a href="{% url 'analytics:waste_list' %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

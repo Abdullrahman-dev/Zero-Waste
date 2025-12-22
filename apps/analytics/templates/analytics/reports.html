@@ -4,12 +4,55 @@
 {% block title %}تحليل الذكاء الاصطناعي - Zero Waste{% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-light bg-transparent py-4 px-4">
+<nav class="navbar navbar-light bg-transparent py-4 px-4">
+    <div class="d-flex align-items-center">
         <h2 class="fs-2 fw-bold">📈 تقارير الذكاء الاصطناعي</h2>
-    </nav>
+    </div>
+    <div class="ms-auto">
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" id="magicAIBtn">
+            <i class="bi bi-magic me-2"></i>المستشار الذكي ✨
+        </button>
+    </div>
+</nav>
 
-    <div class="container-fluid px-4">
-        <div class="content-panel">
+<div class="container-fluid px-4">
+    <!-- 📊 Interactive Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="content-panel shadow-sm border-0 h-100">
+                <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>أكثر المنتجات هدراً هذا
+                    الشهر</h5>
+                <div style="height: 300px;">
+                    <canvas id="topWastedChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="content-panel shadow-sm border-0 h-100">
+                <h5 class="fw-bold mb-4"><i class="bi bi-graph-up-arrow me-2 text-danger"></i>الخسائر المالية (آخر 6
+                    شهور)</h5>
+                <div style="height: 300px;">
+                    <canvas id="lossTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💡 Smart Reduction Suggestions Link -->
+    <div class="content-panel shadow-sm border-0 mb-4 bg-light bg-opacity-50 text-center py-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>توقعات تقليل الكميات (للتحكم في
+            الفائض)</h5>
+        <p class="text-muted mb-3">احصل على خطة مفصلة لتقليل مشتريات الأسبوع القادم وتقليل الخسائر.</p>
+        <a href="{% url 'analytics:reduction_suggestions' %}"
+            class="btn btn-warning text-dark fw-bold rounded-pill px-5 shadow-sm">
+            عرض توصيات الشراء <i class="bi bi-arrow-left ms-2"></i>
+        </a>
+    </div>
+
+    <!-- 📜 Historical Reports Table -->
+    <div class="content-panel shadow-sm border-0 mt-4">
+        <h5 class="fw-bold mb-4">📜 سجل التقارير السابقة</h5>
+        <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="bg-light">
                     <tr>
@@ -18,28 +61,199 @@
                         <th>تاريخ التحليل</th>
                         <th>القيمة المهددة</th>
                         <th>الحالة</th>
-                        <th>إجراء سريع</th> 
+                        <th>إجراء سريع</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for report in reports %}
+                    {% for report in reports %}
                     <tr>
                         <td>#{{ report.id }}</td>
                         <td>{{ report.branch.name }}</td>
                         <td>{{ report.generated_date|date:"Y-m-d H:i" }}</td>
                         <td class="text-danger fw-bold">{{ report.total_waste_value }} ر.س</td>
-                        <td><span class="badge bg-danger bg-opacity-10 text-danger">High Risk</span></td>
                         <td>
-                            <a href="{% url 'create_promo' report.branch.id %}" class="btn btn-warning btn-sm fw-bold">
-                                <i class="bi bi-lightning-fill"></i> تفعيل خصم
-                            </a>
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">
+                                {{ report.analysis_data.financial_impact.risk_level|default:"High Risk" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'operations:requests_list' %}?type=promo&branch_id={{ report.branch.id }}&details=طلب تفعيل خصم بناءً على تقرير رقم {{ report.id }}"
+                                    class="btn btn-warning btn-sm fw-bold">
+                                    <i class="bi bi-lightning-fill"></i> تفعيل خصم
+                                </a>
+                                <a href="https://saudifoodbank.com/" target="_blank"
+                                    class="btn btn-outline-success btn-sm fw-bold ms-1">
+                                    <i class="bi bi-heart-fill"></i> تبرع
+                                </a>
+                            </div>
                         </td>
                     </tr>
-                {% empty %}
-                    <tr><td colspan="6" class="text-center py-4">لا توجد تقارير</td></tr>
-                {% endfor %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-inbox text-muted fs-1 d-block mb-3"></i>
+                            لا توجد تقارير حالياً
+                        </td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+</div>
+
+<!-- 🪄 Magic AI Advisor Modal -->
+<div class="modal fade" id="aiAdviceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-stars me-2"></i>نصيحة المستشار الذكي الاستراتيجية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="aiAdviceContent">
+                <!-- Content will be loaded here -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">جاري تحليل بيانات الشركة وإعداد التوصيات الاستراتيجية...</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Fetch and Render Charts
+        fetch("{% url 'analytics:analytics_stats_api' %}")
+            .then(res => res.json())
+            .then(data => {
+                // Top Wasted Products Chart
+                new Chart(document.getElementById('topWastedChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.top_products.labels,
+                        datasets: [{
+                            label: 'الخسارة المقدرة (ر.س)',
+                            data: data.top_products.values,
+                            backgroundColor: '#3498db',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Financial Loss Trend Chart
+                new Chart(document.getElementById('lossTrendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.monthly_trend.labels,
+                        datasets: [{
+                            label: 'إجمالي الهدر الشهري',
+                            data: data.monthly_trend.values,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#e74c3c'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // 3. Render Smart Reduction Suggestions
+                const suggestionsArea = document.getElementById('reductionSuggestions');
+                if (data.reduction_candidates && data.reduction_candidates.length > 0) {
+                    let suggestionsHTML = '';
+                    data.reduction_candidates.forEach(can => {
+                        suggestionsHTML += `
+                            <div class="col-md-4">
+                                <div class="card border-0 shadow-sm rounded-3 h-100">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="bg-warning bg-opacity-10 p-2 rounded-circle me-3">
+                                                <i class="bi bi-box-arrow-down text-warning fs-5"></i>
+                                            </div>
+                                            <h6 class="fw-bold mb-0">${can.name}</h6>
+                                        </div>
+                                        <div class="ps-5">
+                                            <p class="text-danger small mb-1">خسارة مقدرة: ${can.loss} ر.س</p>
+                                            <p class="text-success fw-bold mb-0">${can.suggestion}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                    suggestionsArea.innerHTML = suggestionsHTML;
+                } else {
+                    suggestionsArea.innerHTML = '<div class="col-12 text-center py-3 text-muted">لا توجد منتجات تحتاج لتقليل الطلب حالياً. ✨</div>';
+                }
+            });
+
+        // 2. Magic AI Advisor Logic
+        const magicBtn = document.getElementById('magicAIBtn');
+        const modal = new bootstrap.Modal(document.getElementById('aiAdviceModal'));
+        const contentArea = document.getElementById('aiAdviceContent');
+
+        magicBtn.addEventListener('click', function () {
+            modal.show();
+            contentArea.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">جاري تحليل البيانات التاريخية...</p>
+                </div>`;
+
+            fetch("{% url 'analytics:magic_ai_advice_api' %}")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        contentArea.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                        return;
+                    }
+
+                    let html = `
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-clipboard-data me-2"></i>خلاصة الأداء:</h6>
+                            <p class="bg-light p-3 rounded-3 mb-0">${data.performance_verdict || 'لا يوجد ملخص متاح.'}</p>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-success mb-3"><i class="bi bi-lightbulb me-2"></i>التوصيات الاستراتيجية للمطعم:</h6>
+                            <ul class="list-group list-group-flush shadow-sm rounded-3">`;
+
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        data.recommendations.forEach(rec => {
+                            html += `<li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-check2-circle text-success me-3 fs-5"></i>
+                                <span>${rec}</span>
+                            </li>`;
+                        });
+                    } else {
+                        html += `<li class="list-group-item text-muted">لا توجد توصيات محددة بناءً على البيانات المتوفرة.</li>`;
+                    }
+
+                    html += `</ul></div>`;
+                    contentArea.innerHTML = html;
+                })
+                .catch(err => {
+                    contentArea.innerHTML = `<div class="alert alert-danger">حدث خطأ أثناء استدعاء الذكاء الاصطناعي: ${err.message}</div>`;
+                });
+        });
+    });
+</script>
 {% endblock %}

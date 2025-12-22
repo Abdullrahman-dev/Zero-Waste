@@ -30,7 +30,20 @@ class Product(models.Model):
     name = models.CharField(max_length=100, verbose_name="اسم المنتج")
     sku = models.CharField(max_length=50, unique=True, verbose_name="رمز SKU")
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, blank=True, null=True, verbose_name="التصنيف")
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default='kg', verbose_name="وحدة القياس") # كجم، لتر، حبة
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default='kg', verbose_name="وحدة القياس")
+    
+    # 🆕 ربط المنتج بالشركة (عزل البيانات)
+    from apps.core.models import RestaurantCompany
+    company = models.ForeignKey(
+        RestaurantCompany, 
+        on_delete=models.CASCADE, 
+        related_name='products',
+        verbose_name="الشركة المالكة",
+        null=True, blank=True # جعلناها اختيارية مؤقتاً لتجنب مشاكل البيانات القديمة
+    )
+    
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="سعر التكلفة (للوحدة)")
+    minimum_quantity = models.FloatField(default=5.0, verbose_name="حد النقص (Alert Threshold)")
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
@@ -75,3 +88,17 @@ class StockItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.branch.name} ({self.batch_id})"
+
+# إعدادات المخزون الخاصة بكل فرع (تجاوز الإعدادات العامة للمنتج)
+class BranchStockSetting(models.Model):
+    branch = models.ForeignKey('core.Branch', on_delete=models.CASCADE, related_name='stock_settings')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='branch_settings')
+    minimum_quantity = models.FloatField(default=5.0, verbose_name="حد النقص الخاص بالفرع")
+    
+    class Meta:
+        unique_together = ('branch', 'product')
+        verbose_name = "إعداد مخزون الفرع"
+        verbose_name_plural = "إعدادات مخزون الفروع"
+
+    def __str__(self):
+        return f"{self.branch.name} - {self.product.name} (Min: {self.minimum_quantity})"

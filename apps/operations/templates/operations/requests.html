@@ -28,6 +28,52 @@
         {% endfor %}
     {% endif %}
 
+    <!-- Filter Tabs & Options -->
+    <div class="row align-items-center mb-3 g-2">
+        <!-- Status Tabs -->
+        <div class="col-md-auto">
+            <div class="d-flex gap-2">
+                <a href="?status=ALL&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'ALL' %}btn-dark{% else %}btn-outline-secondary bg-white{% endif %}">
+                    الكل
+                </a>
+                <a href="?status=PENDING&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'PENDING' %}btn-warning text-dark{% else %}btn-outline-secondary bg-white{% endif %}">
+                    قيد الانتظار
+                </a>
+                <a href="?status=APPROVED&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'APPROVED' %}btn-success{% else %}btn-outline-secondary bg-white{% endif %}">
+                    مقبول
+                </a>
+                <a href="?status=REJECTED&company_id={{ selected_company|default:'' }}&branch_id={{ selected_branch|default:'' }}" class="btn rounded-pill border {% if active_status == 'REJECTED' %}btn-danger{% else %}btn-outline-secondary bg-white{% endif %}">
+                    مرفوض
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced Filters (Company/Branch) -->
+        <div class="col-md ms-auto">
+            <form method="GET" class="d-flex gap-2 justify-content-md-end">
+                <input type="hidden" name="status" value="{{ active_status }}">
+                
+                {% if user.is_superuser %}
+                <select name="company_id" class="form-select rounded-pill" style="max-width: 200px;" onchange="this.form.submit()">
+                    <option value="">كل الشركات</option>
+                    {% for company in companies %}
+                        <option value="{{ company.id }}" {% if selected_company|stringformat:"s" == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                
+                {% if user.is_superuser or is_manager %}
+                <select name="branch_id" class="form-select rounded-pill" style="max-width: 200px;" onchange="this.form.submit()">
+                    <option value="">كل الفروع</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if selected_branch|stringformat:"s" == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -47,7 +93,14 @@
                         {% for req in requests %}
                         <tr>
                             <td class="ps-4 fw-bold">#{{ req.id }}</td>
-                            <td>{{ req.type }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold">{{ req.type }}</span>
+                                    <button class="btn btn-sm btn-link text-primary p-0 text-decoration-none" onclick="viewDetails('{{ req.details|escapejs }}', '{{ req.type|escapejs }}')">
+                                        <i class="bi bi-eye-fill"></i> <small>عرض</small>
+                                    </button>
+                                </div>
+                            </td>
                             <td><span class="badge bg-light text-dark border">{{ req.branch.name }}</span></td>
                             <td class="text-muted small">{{ req.created_at|date:"Y-m-d H:i" }}</td>
                             <td>
@@ -61,7 +114,13 @@
                             </td>
                             <td class="text-break" style="max-width: 200px;">
                                 {% if req.manager_response %}
-                                    <small class="text-dark"><i class="bi bi-chat-quote-fill text-primary me-1"></i> {{ req.manager_response }}</small>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-chat-quote-fill text-primary me-2"></i>
+                                        <span class="text-dark small text-truncate" style="max-width: 150px;">{{ req.manager_response }}</span>
+                                        <button class="btn btn-sm btn-link text-primary p-0 ms-1" onclick="viewDetails('{{ req.manager_response|escapejs }}', 'رد الإدارة على الطلب #{{ req.id }}')">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </button>
+                                    </div>
                                 {% else %}
                                     <span class="text-muted small">-</span>
                                 {% endif %}
@@ -98,6 +157,24 @@
     </div>
 </div>
 
+<!-- Modal: View Details -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="detailsModalTitle">تفاصيل التقرير</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="detailsModalContent" class="text-break"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: New Request (For Branch Managers) -->
 <div class="modal fade" id="newRequestModal" tabindex="-1">
     <div class="modal-dialog">
@@ -117,9 +194,17 @@
                         {{ request_form.details.label_tag }}
                         {{ request_form.details }}
                     </div>
+                    {% if is_manager %}
+                    <div class="mb-3">
+                        {{ request_form.branch.label_tag }}
+                        {{ request_form.branch }}
+                    </div>
+                    {% else %}
+                        {{ request_form.branch }} <!-- Hidden for others if needed, though form handles it -->
+                    {% endif %}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                     <button type="submit" class="btn btn-primary">إرسال التقرير</button>
                 </div>
             </form>
@@ -185,5 +270,21 @@
             location.reload();
         });
     }
+
+    function viewDetails(details, title) {
+        document.getElementById('detailsModalTitle').innerText = title;
+        document.getElementById('detailsModalContent').innerText = details;
+        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        modal.show();
+    }
+
+    // 🆕 Auto-open Modal if URL params exist (meaning autofill used)
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('type') || urlParams.has('details')) {
+             const newRequestModal = new bootstrap.Modal(document.getElementById('newRequestModal'));
+             newRequestModal.show();
+        }
+    });
 </script>
 {% endblock %}

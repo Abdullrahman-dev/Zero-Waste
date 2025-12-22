@@ -15,10 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path , include
+from django.urls import path, include
+
+# استيراد الـ views المخصصة للإشعارات
+from apps.notifications.admin_views import notification_dashboard, send_notification_now
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # صفحة إدارة الإشعارات المخصصة
+    path('admin/notifications/dashboard/', notification_dashboard, name='admin_notification_dashboard'),
+    path('admin/notifications/send/<int:update_id>/', send_notification_now, name='admin_send_notification_now'),
     
     # استدعاء واحد فقط لتطبيق core مع الـ namespace
     path('', include('apps.core.urls', namespace='core')),
@@ -27,4 +34,6 @@ urlpatterns = [
     path('analytics/', include('apps.analytics.urls')),
     path('operations/', include('apps.operations.urls')),
     path('auth/', include('apps.authentication.urls')),
+    path('notifications/', include('apps.notifications.urls')),
+    path('ai/', include('apps.ai_engine.urls')),
 ]

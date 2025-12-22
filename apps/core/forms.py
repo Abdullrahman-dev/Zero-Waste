@@ -5,18 +5,25 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class CompanyForm(forms.ModelForm):
-    # نستخدم حقل اختيار للمدراء فقط (الذين لديهم صلاحية manager)
-    manager = forms.ModelChoiceField(
-        queryset=User.objects.filter(role='manager'),
-        required=False,
-        label="تعيين مدير",
-        empty_label="-- اختر مديراً (اختياري) --",
-        widget=forms.Select(attrs={'class': 'form-select'})
+    new_manager_email = forms.EmailField(
+        label="البريد الإلكتروني",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'manager@example.com'}),
+        required=True
+    )
+    new_manager_username = forms.CharField(
+        label="اسم مستخدم المدير العام",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Manager Username'}),
+        required=True
+    )
+    new_manager_password = forms.CharField(
+        label="كلمة المرور",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': '******'}),
+        required=True
     )
 
     class Meta:
         model = RestaurantCompany
-        fields = ['name', 'manager', 'subscription_status']
+        fields = ['name', 'subscription_status'] # Removed manager
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'اسم المطعم/الشركة'}),
             'subscription_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -26,37 +33,37 @@ class CompanyForm(forms.ModelForm):
             'subscription_status': 'اشتراك نشط',
         }
 
-class BranchForm(forms.ModelForm):
-    # خيار اختيار مدير موجود
-    manager = forms.ModelChoiceField(
-        queryset=User.objects.filter(role='branch_manager'),
-        required=False,
-        label="اختيار مدير موجود",
-        empty_label="-- اختر مديراً (اختياري) --",
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('new_manager_username')
+        
+        # التأكد من عدم تكرار اسم المستخدم
+        if username and User.objects.filter(username=username).exists():
+             raise forms.ValidationError(f"اسم المستخدم '{username}' موجود بالفعل.")
+        
+        return cleaned_data
 
-    # حقول إنشاء مدير جديد
-    create_new_manager = forms.BooleanField(
-        required=False, 
-        label="أو إنشاء حساب مدير جديد لهذا الفرع",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'createNewManagerCheck'})
+class BranchForm(forms.ModelForm):
+    # خيار إنشاء مدير جديد إجباري (لضمان العزل)
+    new_manager_email = forms.EmailField(
+        label="البريد الإلكتروني للمدير",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'branch@example.com'}),
+        required=True
     )
-    
     new_manager_username = forms.CharField(
-        required=False, 
+        required=True, 
         label="اسم المستخدم للمدير الجديد",
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
     )
     new_manager_password = forms.CharField(
-        required=False, 
+        required=True, 
         label="كلمة المرور",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': '******'})
     )
 
     class Meta:
         model = Branch
-        fields = ['name', 'location', 'manager', 'waste_threshold']
+        fields = ['name', 'location', 'waste_threshold'] # Removed manager
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'مثال: فرع الرياض - العليا'}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'الرياض، شارع العليا'}),
@@ -70,16 +77,9 @@ class BranchForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        create_new = cleaned_data.get('create_new_manager')
         username = cleaned_data.get('new_manager_username')
-        password = cleaned_data.get('new_manager_password')
 
-        if create_new:
-            if not username or not password:
-                raise forms.ValidationError("يرجى إدخال اسم المستخدم وكلمة المرور للمدير الجديد.")
-            
-            # التأكد من عدم تكرار اسم المستخدم
-            if User.objects.filter(username=username).exists():
-                raise forms.ValidationError("اسم المستخدم هذا مستخدم بالفعل. يرجى اختيار اسم آخر.")
+        if username and User.objects.filter(username=username).exists():
+            raise forms.ValidationError(f"اسم المستخدم '{username}' موجود بالفعل.")
         
         return cleaned_data

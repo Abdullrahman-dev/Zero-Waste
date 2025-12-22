@@ -64,7 +64,8 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{% url 'inventory:edit_stock_item' item.id %}" class="btn btn-sm btn-outline-primary" title="تعديل"><i class="bi bi-pencil-square"></i></a>
-                                    <a href="{% url 'inventory:delete_stock_item' item.id %}" class="btn btn-sm btn-outline-danger" title="حذف"><i class="bi bi-trash"></i></a>
+                                    <a href="{% url 'analytics:log_waste' %}?stock_id={{ item.id }}" class="btn btn-sm btn-outline-warning" title="تسجيل كهدر"><i class="bi bi-recycle"></i></a>
+                                    <a href="{% url 'inventory:delete_stock_item' item.id %}" class="btn btn-sm btn-outline-danger" title="حذف نهائي"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>
