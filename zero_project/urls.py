@@ -34,5 +34,6 @@ urlpatterns = [
     path('analytics/', include('apps.analytics.urls')),
     path('operations/', include('apps.operations.urls')),
     path('auth/', include('apps.authentication.urls')),
-    path('notifications/', include('apps.notifications.urls')),  # مسارات الإشعارات
+    path('notifications/', include('apps.notifications.urls')),
+    path('ai/', include('apps.ai_engine.urls')),
 ]

@@ -2,7 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, F, Q
 from django.http import JsonResponse
-from apps.core.models import Branch, RestaurantCompany
+from django.db.models import Sum
+from .models import RestaurantCompany, Branch
+from .forms import CompanyForm, BranchForm
+from apps.inventory.models import StockItem
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
 from apps.inventory.models import Product, StockItem, BranchStockSetting
@@ -66,6 +69,9 @@ def _company_dashboard(request):
     notifications = UserNotification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
     unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count()
 
+    # Latest Reports (Added for AI Dashboard consistency)
+    latest_reports = WasteReport.objects.filter(branch__company=company).order_by('-generated_date')[:5]
+
     context = {
         'user_role': 'General Manager',
         'company': company,
@@ -74,7 +80,10 @@ def _company_dashboard(request):
         'pending_requests': total_requests,
         'low_stock_items': low_stock_items,
         'notifications': notifications,
+        'notifications': notifications,
         'unread_notifications_count': unread_count,
+        'latest_reports': latest_reports, # Restored for Template
+        'total_potential_loss': total_waste_cost, # Alias for Template compatibility
     }
     return render(request, 'core/dashboard_company.html', context)
 
@@ -149,7 +158,6 @@ def add_branch_view(request):
             new_password = form.cleaned_data.get('new_manager_password')
             
             if new_username and new_password:
-                User = get_user_model()
                 try:
                     new_manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='branch_manager')
                     branch.manager = new_manager
@@ -174,26 +182,30 @@ def add_company_view(request):
     if request.method == 'POST':
         form = CompanyForm(request.POST)
         if form.is_valid():
-            company = form.save(commit=False)
+            # 1. Create User
+            username = form.cleaned_data['new_manager_username']
+            email = form.cleaned_data['new_manager_email']
+            password = form.cleaned_data['new_manager_password']
             
             # Create General Manager
             new_username = form.cleaned_data.get('new_manager_username')
             new_email = form.cleaned_data.get('new_manager_email')
             new_password = form.cleaned_data.get('new_manager_password')
             
+            manager = None # Initialize manager
             if new_username and new_password:
-                User = get_user_model()
                 try:
                     manager = User.objects.create_user(username=new_username, email=new_email, password=new_password, role='manager')
-                    company.manager = manager
-                    manager.save() # Will be linked on company save? No, company needs manager first or vice versa.
-                    # Usually company.manager = manager. Then save company. Then manager.managed_company = company? 
-                    # Let's assume OneToOne or ForeignKey logic.
                 except Exception as e:
                      messages.error(request, f"Error creating manager: {e}")
                      return redirect('core:admin_dashboard')
 
+            # 2. Create Company
+            company = form.save(commit=False)
+            if manager:
+                company.manager = manager
             company.save()
+            
             messages.success(request, f"تم إضافة مطعم {company.name} بنجاح.")
         else:
             messages.error(request, "بيانات غير صحيحة.")
@@ -209,14 +221,22 @@ def toggle_company_status(request, company_id):
     messages.success(request, f"تم {status_msg} اشتراك {company.name} بنجاح.")
     return redirect('core:dashboard')
 
+@user_passes_test(lambda u: u.is_superuser)
+def client_management_view(request):
+     # basic stub to resolve conflict
+     return render(request, 'core/dashboard_saas_admin.html')
+
 # --- APIS ---
+@login_required # Added from stashed changes
 def chart_data_api(request):
     # Retrieve data for charts (Mock or Real)
-    data = {
-        'labels': ['Jan', 'Feb', 'Mar'],
-        'values': [100, 200, 150]
-    }
-    return JsonResponse(data)
+    labels = ["Yan", "Feb", "Mar", "Apr", "May", "Jun"] # From stashed changes
+    data = [10, 20, 15, 25, 20, 30] # Mock data or query DB # From stashed changes
+    
+    return JsonResponse({ # Combined from both
+        'labels': labels,
+        'data': data
+    })
 
 # --- NEW FEATURES (SMART LAYER) ---
 
@@ -237,7 +257,6 @@ def integrations_view(request):
 # 2. Impersonation (Login As)
 @user_passes_test(lambda u: u.is_superuser)
 def impersonate_user(request, user_id):
-    User = get_user_model()
     original_user_id = request.user.id
     
     try:
@@ -258,7 +277,6 @@ def impersonate_user(request, user_id):
         return redirect('core:dashboard')
 
 def stop_impersonation(request):
-    User = get_user_model()
     impersonator_id = request.session.get('impersonator_id')
     
     if impersonator_id:

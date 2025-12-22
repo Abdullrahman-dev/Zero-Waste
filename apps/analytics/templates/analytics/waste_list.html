@@ -19,6 +19,7 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">التاريخ</th>
+                            <th>الفرع</th>
                             <th>المنتج</th>
                             <th>الكمية</th>
                             <th>السبب</th>
@@ -30,15 +31,17 @@
                         {% for log in logs %}
                         <tr>
                             <td class="ps-4">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ log.branch.name|default:"-" }}</td>
                             <td class="fw-bold">{{ log.product.name }}</td>
-                            <td><span class="badge bg-danger bg-opacity-10 text-danger">{{ log.quantity }} {{ log.product.get_unit_display }}</span></td>
+                            <td><span class="badge bg-danger bg-opacity-10 text-danger">{{ log.quantity }}
+                                    {{log.product.get_unit_display }}</span></td>
                             <td>{{ log.get_reason_display }}</td>
                             <td>{{ log.submitted_by.username }}</td>
                             <td class="text-muted small">{{ log.notes|default:"-" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-check-circle fs-1 d-block mb-3 text-success opacity-50"></i>
                                 ممتاز! لا يوجد هدر مسجل.
                             </td>
