@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحباً بك في Zero Waste</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 40px 30px;
+            color: #333;
+        }
+        .content h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-right: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 مرحباً بك في نظام Zero Waste</h1>
+        </div>
+        
+        <div class="content">
+            <h2>مرحباً {{ user.get_full_name|default:user.username }}،</h2>
+            
+            <p>يسعدنا انضمامك إلى نظام Zero Waste لإدارة المطاعم!</p>
+            
+            <div class="info-box">
+                <strong>معلومات حسابك:</strong><br>
+                اسم المستخدم: <strong>{{ user.username }}</strong><br>
+                نوع الحساب: <strong>{{ role_display }}</strong><br>
+                البريد الإلكتروني: <strong>{{ user.email }}</strong>
+            </div>
+            
+            <p>يمكنك الآن تسجيل الدخول والبدء باستخدام النظام:</p>
+            
+            <center>
+                <a href="{{ login_url }}" class="button">تسجيل الدخول الآن</a>
+            </center>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                <strong>نصيحة:</strong> ننصحك بتغيير كلمة المرور بعد أول تسجيل دخول لضمان أمان حسابك.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>هذا الإيميل تم إرساله تلقائياً من نظام Zero Waste</p>
+            <p>إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذا الإيميل</p>
+        </div>
+    </div>
+</body>
+</html>

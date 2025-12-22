@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحديث النظام</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #333;
+        }
+
+        .content h2 {
+            color: #4facfe;
+            margin-top: 0;
+        }
+
+        .update-box {
+            background-color: #e3f2fd;
+            border-right: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .schedule-box {
+            background-color: #fff8e1;
+            border-right: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .schedule-box .time {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f57c00;
+            margin: 10px 0;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 تحديث النظام</h1>
+        </div>
+
+        <div class="content">
+            <h2>مرحباً {{ user.get_full_name|default:user.username }}،</h2>
+
+            <p>نود إعلامك بتحديث قادم على نظام Zero Waste:</p>
+
+            <div class="update-box">
+                <h3 style="margin-top: 0; color: #2196f3;">{{ update.title }}</h3>
+                <p style="margin: 0;">{{ update.message|linebreaks }}</p>
+            </div>
+
+            <div class="schedule-box">
+                <strong>⏰ موعد التحديث:</strong>
+                <div class="time">{{ update.scheduled_time|date:"Y/m/d - H:i" }}</div>
+                <small style="color: #666;">يرجى حفظ عملك قبل هذا الموعد</small>
+            </div>
+
+            <p style="color: #666; font-size: 14px;">
+                <strong>ملاحظة:</strong> قد يكون النظام غير متاح لفترة قصيرة أثناء التحديث. نعتذر عن أي إزعاج.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>هذا الإيميل تم إرساله تلقائياً من نظام Zero Waste</p>
+            <p>للاستفسارات، يرجى التواصل مع مسؤول النظام</p>
+        </div>
+    </div>
+</body>
+
+</html>

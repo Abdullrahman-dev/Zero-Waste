@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة الإشعارات - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold">🔐 إدارة الإشعارات - السوبر أدمن</h1>
+            <p class="text-muted mb-0">التحكم الكامل في نظام الإشعارات والإيميلات</p>
+        </div>
+        <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right"></i> العودة للوحة التحكم
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="row">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- إحصائيات -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-info bg-opacity-10">
+                <div class="stat-icon text-info"><i class="bi bi-bell"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-info">{{ total_notifications }}</h3>
+                    <p class="stat-label">إجمالي الإشعارات</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-warning bg-opacity-10">
+                <div class="stat-icon text-warning"><i class="bi bi-bell-fill"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-warning">{{ unread_notifications }}</h3>
+                    <p class="stat-label">غير مقروءة</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-primary bg-opacity-10">
+                <div class="stat-icon text-primary"><i class="bi bi-envelope"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-primary">{{ total_emails }}</h3>
+                    <p class="stat-label">إجمالي الإيميلات</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-success bg-opacity-10">
+                <div class="stat-icon text-success"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-success">{{ successful_emails }}</h3>
+                    <p class="stat-label">إيميلات ناجحة</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-warning bg-opacity-10">
+                <div class="stat-icon text-warning"><i class="bi bi-clock"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-warning">{{ pending_updates }}</h3>
+                    <p class="stat-label">إشعارات معلقة</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card bg-info bg-opacity-10">
+                <div class="stat-icon text-info"><i class="bi bi-people"></i></div>
+                <div class="stat-details">
+                    <h3 class="stat-number text-info">{{ total_users }}</h3>
+                    <p class="stat-label">إجمالي المستخدمين</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج إرسال إشعار جديد -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-send"></i> إرسال إشعار جديد</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="notificationForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label fw-bold">عنوان الإشعار *</label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                    placeholder="مثال: تحديث مهم للنظام">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduled_time" class="form-label fw-bold">موعد التحديث المجدول *</label>
+                                <input type="datetime-local" class="form-control" id="scheduled_time"
+                                    name="scheduled_time" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="message" class="form-label fw-bold">نص الإشعار *</label>
+                            <textarea class="form-control" id="message" name="message" rows="4" required
+                                placeholder="اكتب تفاصيل الإشعار هنا..."></textarea>
+                        </div>
+
+                        <!-- خيارات الاستهداف -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">الاستهداف *</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="target_type" id="target_all" value="all"
+                                    autocomplete="off">
+                                <label class="btn btn-outline-primary" for="target_all">
+                                    <i class="bi bi-people-fill"></i> جميع المستخدمين
+                                </label>
+
+                                <input type="radio" class="btn-check" name="target_type" id="target_managers"
+                                    value="managers" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="target_managers">
+                                    <i class="bi bi-person-badge"></i> المدراء فقط
+                                </label>
+
+                                <input type="radio" class="btn-check" name="target_type" id="target_selected"
+                                    value="selected" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="target_selected">
+                                    <i class="bi bi-person-check"></i> مستخدمين محددين
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- قائمة المستخدمين المحددين -->
+                        <div class="mb-3" id="userSelectionDiv" style="display: none;">
+                            <label class="form-label fw-bold">اختر المستخدمين</label>
+                            <select class="form-select" name="selected_users" id="selected_users" multiple size="8">
+                                {% for user in all_users %}
+                                <option value="{{ user.id }}">
+                                    {{ user.username }} - {{ user.get_role_display|default:"مستخدم" }}
+                                    {% if user.email %}({{ user.email }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">اضغط Ctrl للاختيار المتعدد</small>
+                        </div>
+
+                        <!-- خيارات الإرسال -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="send_email" name="send_email"
+                                        checked>
+                                    <label class="form-check-label" for="send_email">
+                                        <i class="bi bi-envelope"></i> إرسال إيميل
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="send_notification"
+                                        name="send_notification" checked>
+                                    <label class="form-check-label" for="send_notification">
+                                        <i class="bi bi-bell"></i> إنشاء إشعار داخلي
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="send_now" name="send_now"
+                                        checked>
+                                    <label class="form-check-label" for="send_now">
+                                        <i class="bi bi-send-check"></i> إرسال فوراً
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> إرسال الإشعار
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آخر الإشعارات -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> آخر الإشعارات المرسلة</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>العنوان</th>
+                                    <th>الاستهداف</th>
+                                    <th>الموعد</th>
+                                    <th>الحالة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for update in recent_updates %}
+                                <tr>
+                                    <td><strong>{{ update.title }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ update.get_target_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ update.scheduled_time|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        {% if update.is_sent %}
+                                        <span class="badge bg-success">✓ تم الإرسال</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">⏳ معلق</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not update.is_sent %}
+                                        <form method="post" action="{% url 'core:send_notification_now' update.id %}"
+                                            style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-send"></i> إرسال الآن
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        لا توجد إشعارات
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- آخر الإيميلات -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> آخر الإيميلات</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        {% for email in recent_emails %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <small class="text-muted">{{ email.recipient }}</small>
+                                    <p class="mb-1 small"><strong>{{ email.subject|truncatewords:5 }}</strong></p>
+                                    <small class="text-muted">{{ email.sent_at|date:"m-d H:i" }}</small>
+                                </div>
+                                <div>
+                                    {% if email.is_sent %}
+                                    <span class="badge bg-success">✓</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">✗</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            لا توجد إيميلات
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .stat-label {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .btn-group .btn {
+        padding: 12px 20px;
+    }
+</style>
+
+<script>
+    // إظهار/إخفاء قائمة المستخدمين حسب نوع الاستهداف
+    document.querySelectorAll('input[name="target_type"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const userSelectionDiv = document.getElementById('userSelectionDiv');
+            if (this.value === 'selected') {
+                userSelectionDiv.style.display = 'block';
+                document.getElementById('selected_users').required = true;
+            } else {
+                userSelectionDiv.style.display = 'none';
+                document.getElementById('selected_users').required = false;
+            }
+        });
+    });
+</script>
+{% endblock %}
