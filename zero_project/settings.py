@@ -16,6 +16,10 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env file
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -49,7 +53,8 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.operations',
     'apps.analytics',
-    'apps.notifications',  # التطبيق الجديد
+    'apps.notifications',
+    'apps.ai_engine',
 ]
 
 MIDDLEWARE = [
@@ -166,3 +171,8 @@ LOGIN_REDIRECT_URL = 'core:dashboard'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = 'core:dashboard'
+
+# Google Gemini API Key
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")

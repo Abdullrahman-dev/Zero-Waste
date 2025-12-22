@@ -1,6 +1,6 @@
-# apps/analytics/models.py
 from django.db import models
 from apps.core.models import Branch
+import json
 
 class WasteReport(models.Model):
     branch = models.ForeignKey(
@@ -16,6 +16,22 @@ class WasteReport(models.Model):
 
     def __str__(self):
         return f"Report #{self.id} - {self.branch.name}"
+
+    @property
+    def analysis_data(self):
+        """تهيئة بيانات الذكاء الاصطناعي من النص المخزن في ملف JSON"""
+        if not self.ai_analysis:
+            return {}
+        try:
+            # التحقق إذا كانت البيانات مخزنة كنص JSON (وهو المتوقع)
+            data = json.loads(self.ai_analysis)
+            # في حال تم التشفير مرتين (Double encoding) بالخطأ
+            if isinstance(data, str):
+                data = json.loads(data)
+            return data
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            print(f"❌ AI JSON ERROR [Report {self.id}]: {e}")
+            return {}
 
 class WasteLog(models.Model):
     WASTE_REASONS = [
@@ -40,3 +56,4 @@ class WasteLog(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
+        
