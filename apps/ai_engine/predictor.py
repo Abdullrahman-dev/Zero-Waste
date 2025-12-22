@@ -12,22 +12,33 @@ from dotenv import load_dotenv
 def configure_gemini():
     if not GEMINI_AVAILABLE:
         print("Warning: google.generativeai module not found.")
-        return False
+        return False, "Library 'google-generativeai' not installed."
     
-    load_dotenv()
-    api_key = getattr(settings, 'GEMINI_API_KEY', os.environ.get('GEMINI_API_KEY'))
+    # 1. Try from Django Settings (Preferred)
+    api_key = getattr(settings, 'GEMINI_API_KEY', None)
+    
+    # 2. If not in settings, force load from .env
+    if not api_key:
+        env_path = settings.BASE_DIR / '.env'
+        load_dotenv(env_path)
+        api_key = os.environ.get('GEMINI_API_KEY')
     
     if not api_key:
-        print("Warning: GEMINI_API_KEY not found.")
-        return False
-    genai.configure(api_key=api_key)
-    
-    return True
+        # 3. Final Check
+        print("❌ Warning: GEMINI_API_KEY not found in Settings or .env")
+        return False, "API Key not found in .env or settings."
+
+    try:
+        genai.configure(api_key=api_key)
+        return True, None
+    except Exception as e:
+        print(f"❌ Error configuring Gemini: {e}")
+        return False, f"Config Error: {str(e)}"
 
 class AIPredictor:
    
     def __init__(self):
-        self.configured = configure_gemini()
+        self.configured, self.config_error = configure_gemini()
         # Define the priority list of models to try in order
         self.candidates = [
             'models/gemini-3-flash-preview',       # REQUESTED: Bleeding edge
@@ -43,8 +54,8 @@ class AIPredictor:
     def predict_branch_waste_risk(self, branch_context_data):
         if not self.configured:
             return {
-                "error": "Gemini API key is missing. Check .env",
-                "performance_verdict": "خطأ: المفتاح مفقود"
+                "error": f"AI Error: {self.config_error}",
+                "performance_verdict": f"خطأ: {self.config_error}"
             }
 
         # 1. Context Assembly

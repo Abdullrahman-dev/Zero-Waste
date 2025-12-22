@@ -257,6 +257,7 @@ def integrations_view(request):
 # 2. Impersonation (Login As)
 @user_passes_test(lambda u: u.is_superuser)
 def impersonate_user(request, user_id):
+    User = get_user_model()
     original_user_id = request.user.id
     
     try:
