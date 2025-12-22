@@ -60,6 +60,11 @@ def _company_dashboard(request):
     
     # Low Stock Alerts (Global for Company)
     low_stock_items = StockItem.objects.filter(branch__in=branches, quantity__lte=F('product__minimum_quantity'))[:5]
+    
+    # Notifications
+    from apps.notifications.models import UserNotification
+    notifications = UserNotification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count()
 
     context = {
         'user_role': 'General Manager',
@@ -68,14 +73,18 @@ def _company_dashboard(request):
         'total_waste': total_waste_cost,
         'pending_requests': total_requests,
         'low_stock_items': low_stock_items,
+        'notifications': notifications,
+        'unread_notifications_count': unread_count,
     }
     return render(request, 'core/dashboard_company.html', context)
 
 # --- BRANCH DASHBOARD ---
 def _branch_dashboard(request):
+    # Check if user has a branch
+    if not hasattr(request.user, 'branch') or not request.user.branch:
+        return render(request, 'core/dashboard_empty.html', {'error': 'No branch assigned'})
+    
     branch = request.user.branch
-    if not branch:
-        return render(request, 'core/dashboard_empty.html')
 
     # Stats
     total_waste = WasteReport.objects.filter(branch=branch).aggregate(Sum('total_waste_value'))['total_waste_value__sum'] or 0
@@ -84,6 +93,11 @@ def _branch_dashboard(request):
     # Alerts
     low_stock = StockItem.objects.filter(branch=branch, quantity__lte=F('product__minimum_quantity'))[:5]
     expiring_soon = StockItem.objects.filter(branch=branch).order_by('expiry_date')[:5] # Mock logic for expiry
+    
+    # Notifications
+    from apps.notifications.models import UserNotification
+    notifications = UserNotification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count()
 
     context = {
         'user_role': 'Branch Manager',
@@ -92,6 +106,8 @@ def _branch_dashboard(request):
         'current_stock_count': current_stock_count,
         'low_stock_items': low_stock,
         'expiring_items': expiring_soon,
+        'notifications': notifications,
+        'unread_notifications_count': unread_count,
     }
     return render(request, 'core/dashboard_branch.html', context)
 

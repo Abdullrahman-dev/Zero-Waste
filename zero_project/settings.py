@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.operations',
     'apps.analytics',
+    'apps.notifications',  # التطبيق الجديد
 ]
 
 MIDDLEWARE = [
@@ -148,14 +149,20 @@ STATICFILES_DIRS = [
 # إذا صارت False، النظام سيحاول الاتصال بـ Foodics API
 USE_MOCK_API = True
 
-# انسخ هذا الكود وضعه في آخر ملف settings.py واعمل Save
-print("🔍 DEBUG: BASE_DIR is ->", BASE_DIR)
-import os
-static_path = BASE_DIR / 'static'
-print("🔍 DEBUG: Looking for static files at ->", static_path)
-print("🔍 DEBUG: Does this folder exist? ->", os.path.exists(static_path))
+# Email Configuration
+# للتطوير: استخدام Console Backend (يطبع الإيميلات في الكونسول)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-
-
+# للإنتاج: استخدام SMTP (قم بتفعيل هذه الإعدادات عند الحاجة)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_USER', '')  # ضع الإيميل هنا
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')  # ضع كلمة المرور هنا
+DEFAULT_FROM_EMAIL = 'Zero Waste System <noreply@zerowaste.com>'
 
 LOGIN_REDIRECT_URL = 'core:dashboard'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
