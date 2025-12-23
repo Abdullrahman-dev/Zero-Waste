@@ -1,115 +1,118 @@
 {% extends 'base.html' %}
-
-{% block title %}إدارة الفروع - Zero Waste{% endblock %}
+{% load i18n core_tags %}
+{% block title %}{{ "إدارة الفروع - Zero Waste"|smart_trans }}{% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-light bg-transparent py-4 px-4">
-        <div class="d-flex align-items-center justify-content-between w-100">
-            <h2 class="fs-2 fw-bold text-dark">🏢 فروع المطعم</h2>
-            {% if request.user.role == 'manager' or request.user.is_superuser %}
-            <button class="btn btn-dark btn-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addBranchModal">
-                <i class="bi bi-plus-lg"></i> إضافة فرع جديد
-            </button>
-            {% endif %}
-        </div>
-    </nav>
+<nav class="navbar navbar-light bg-transparent py-4 px-4">
+    <div class="d-flex align-items-center justify-content-between w-100">
+        <h2 class="fs-2 fw-bold text-dark">{{ "🏢 فروع المطعم"|smart_trans }}</h2>
+        {% if request.user.role == 'manager' or request.user.is_superuser %}
+        <button class="btn btn-dark btn-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addBranchModal">
+            <i class="bi bi-plus-lg"></i> {{ "إضافة فرع جديد"|smart_trans }}
+        </button>
+        {% endif %}
+    </div>
+</nav>
 
-    <div class="container-fluid px-4">
-        <div class="content-panel">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>اسم الفرع</th>
-                            <th>الموقع</th>
-                            <th>المدير المسؤول</th>
-                            <th>حد الهدر</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for branch in branches %}
-                        <tr>
-                            <td class="fw-bold">{{ branch.name }}</td>
-                            <td><i class="bi bi-geo-alt text-muted me-1"></i> {{ branch.location }}</td>
-                            <td>
-                                {% if branch.manager %}
-                                    <span class="badge bg-primary bg-opacity-10 text-primary">{{ branch.manager.username }}</span>
-                                {% else %}
-                                    <span class="text-muted small">-- غير محدد --</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ branch.waste_threshold }}%</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">لا توجد فروع مسجلة حالياً.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="container-fluid px-4">
+    <div class="content-panel">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th>{{ "اسم الفرع"|smart_trans }}</th>
+                        <th>{{ "الموقع"|smart_trans }}</th>
+                        <th>{{ "المدير المسؤول"|smart_trans }}</th>
+                        <th>{{ "حد الهدر"|smart_trans }}</th>
+                        <th>{{ "الإجراءات"|smart_trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for branch in branches %}
+                    <tr>
+                        <td class="fw-bold">{{ branch.name }}</td>
+                        <td><i class="bi bi-geo-alt text-muted me-1"></i> {{ branch.location }}</td>
+                        <td>
+                            {% if branch.manager %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary">{{ branch.manager.username
+                                }}</span>
+                            {% else %}
+                            <span class="text-muted small">{{ "-- غير محدد --"|smart_trans }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ branch.waste_threshold }}%</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">{{ "لا توجد فروع مسجلة حالياً."|smart_trans }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
-    <!-- Modal: Add New Branch -->
-    <div class="modal fade" id="addBranchModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{% url 'core:add_branch' %}" method="POST">
-                    {% csrf_token %}
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold">🏢 إضافة فرع جديد</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal: Add New Branch -->
+<div class="modal fade" id="addBranchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{% url 'core:add_branch' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">{{ "🏢 إضافة فرع جديد"|smart_trans }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ branch_form.name.label_tag }}
+                        {{ branch_form.name }}
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            {{ branch_form.name.label_tag }}
-                            {{ branch_form.name }}
+                    <div class="mb-3">
+                        {{ branch_form.location.label_tag }}
+                        {{ branch_form.location }}
+                    </div>
+                    <div class="mb-3 border rounded p-3 bg-light">
+                        <label class="form-label fw-bold mb-2">{{ "بيانات مدير الفرع الجديد (إجباري)"|smart_trans
+                            }}</label>
+                        <div class="mb-2">
+                            {{ branch_form.new_manager_username }}
                         </div>
-                        <div class="mb-3">
-                            {{ branch_form.location.label_tag }}
-                            {{ branch_form.location }}
+                        <div class="mb-2">
+                            {{ branch_form.new_manager_email }}
                         </div>
-                        <div class="mb-3 border rounded p-3 bg-light">
-                            <label class="form-label fw-bold mb-2">بيانات مدير الفرع الجديد (إجباري)</label>
-                            <div class="mb-2">
-                                {{ branch_form.new_manager_username }}
-                            </div>
-                            <div class="mb-2">
-                                {{ branch_form.new_manager_email }}
-                            </div>
-                            <div class="mb-2">
-                                {{ branch_form.new_manager_password }}
-                            </div>
+                        <div class="mb-2">
+                            {{ branch_form.new_manager_password }}
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            {{ branch_form.waste_threshold.label_tag }}
-                            {{ branch_form.waste_threshold }}
-                        </div>
+                    <div class="mb-3">
+                        {{ branch_form.waste_threshold.label_tag }}
+                        {{ branch_form.waste_threshold }}
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="submit" class="btn btn-primary">حفظ الفرع</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ "إلغاء"|smart_trans
+                        }}</button>
+                    <button type="submit" class="btn btn-primary">{{ "حفظ الفرع"|smart_trans }}</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Script to toggle new manager fields -->
-    <script>
-        document.getElementById('createNewManagerCheck').addEventListener('change', function() {
-            const fields = document.getElementById('newManagerFields');
-            if(this.checked) {
-                fields.classList.remove('d-none');
-            } else {
-                fields.classList.add('d-none');
-            }
-        });
-    </script>
+<!-- Script to toggle new manager fields -->
+<script>
+    document.getElementById('createNewManagerCheck').addEventListener('change', function () {
+        const fields = document.getElementById('newManagerFields');
+        if (this.checked) {
+            fields.classList.remove('d-none');
+        } else {
+            fields.classList.add('d-none');
+        }
+    });
+</script>
 {% endblock %}

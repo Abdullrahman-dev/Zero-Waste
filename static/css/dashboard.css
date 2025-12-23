@@ -2,16 +2,60 @@
    1. التنسيقات الأساسية (Layout & Base)
    ========================================= */
 :root {
-    --main-bg-color: #f5f6fa;
-    --sidebar-bg-color: #2c3e50;  /* اللون الكحلي للقائمة */
+    --bg-color: #f5f6fa;
+    --sidebar-bg: #2c3e50;
     --text-color: #2c3e50;
-    --active-color: #27ae60;      /* الأخضر */
+    --text-muted: #6c757d;
+    --active-color: #27ae60;
+    --card-bg: #ffffff;
+    --border-color: #f0f0f0;
+    --hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --sidebar-bg: #1e293b;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
+    --active-color: #2ecc71;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* Offcanvas Theme Support */
+[data-theme="dark"] .offcanvas,
+[data-theme="dark"] #settingsOffcanvas {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .offcanvas-header,
+[data-theme="dark"] .offcanvas-body {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .offcanvas .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .text-white-50 {
+    color: var(--text-muted) !important;
+}
+
+/* Fix notification items in dark mode */
+[data-theme="dark"] .notification-item.bg-light {
+    background-color: var(--hover-bg) !important;
+    border-color: var(--border-color) !important;
 }
 
 body {
     overflow-x: hidden;
-    background-color: var(--main-bg-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 #wrapper {
@@ -26,7 +70,7 @@ body {
 #sidebar-wrapper {
     min-width: 280px;
     max-width: 280px;
-    background-color: var(--sidebar-bg-color);
+    background-color: var(--sidebar-bg);
     color: #fff;
     min-height: 100vh;
     transition: all 0.3s;
@@ -51,7 +95,7 @@ body {
 }
 
 .content-panel {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -62,7 +106,7 @@ body {
    4. الكروت والإحصائيات (Cards & Stats)
    ========================================= */
 .stat-card {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -70,7 +114,8 @@ body {
     justify-content: space-between;
     align-items: center;
     height: 100%;
-    border-right: 4px solid var(--active-color); /* الخط الملون يمين الكرت */
+    border-right: 4px solid var(--active-color);
+    /* الخط الملون يمين الكرت */
 }
 
 .icon-box {
@@ -88,8 +133,9 @@ body {
    ========================================= */
 .table-custom thead th {
     border-top: none;
-    border-bottom: 2px solid #f0f0f0;
-    color: #6c757d;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-color);
+    opacity: 0.7;
     font-size: 0.9rem;
 }
 
@@ -118,9 +164,11 @@ body {
 #sidebar-wrapper .list-group-item.active {
     color: #ffffff !important;
     font-weight: 700 !important;
-    background-color: var(--active-color) !important; /* الخلفية الخضراء */
+    background-color: var(--active-color) !important;
+    /* الخلفية الخضراء */
     border-radius: 0 !important;
-    border-right: 5px solid #1e8449 !important; /* خط أخضر غامق للتميز */
+    border-right: 5px solid #1e8449 !important;
+    /* خط أخضر غامق للتميز */
 }
 
 /* أيقونات القائمة */
@@ -134,6 +182,6 @@ body {
 /* تأثير التحويم (Hover) */
 #sidebar-wrapper .list-group-item:hover {
     color: #ffffff !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: var(--hover-bg) !important;
     transform: translateX(-5px);
 }

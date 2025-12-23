@@ -24,6 +24,9 @@ urlpatterns = [
     # مركز الإشعارات الشامل (للسوبر أدمن في SaaS Dashboard)
     path('saas/notifications/', saas_notifications_center, name='saas_notifications'),
     path('saas/notifications/send/<int:update_id>/', send_saved_notification, name='send_saved_notification'),
+
+    # إعدادات الحساب
+    path('profile/update/', views.update_profile, name='update_profile'),
 ]
 
 

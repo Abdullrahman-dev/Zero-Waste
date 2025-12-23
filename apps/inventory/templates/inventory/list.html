@@ -1,85 +1,96 @@
 {% extends 'base.html' %}
-
-{% block title %}سجل المخزون - Zero Waste{% endblock %}
+{% load i18n core_tags %}
+{% block title %}{{ "سجل المخزون - Zero Waste"|smart_trans }}{% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-light bg-transparent py-4 px-4">
-        <div class="d-flex align-items-center justify-content-between w-100">
-            <h2 class="fs-2 fw-bold text-dark">📦 سجل المخزون الحالي</h2>
-            <a href="{% url 'inventory:add_stock_item' %}" class="btn btn-dark btn-sm rounded-pill px-4">
-                <i class="bi bi-plus-lg"></i> إضافة مخزون
-            </a>
-        </div>
-    </nav>
+<nav class="navbar navbar-light bg-transparent py-4 px-4">
+    <div class="d-flex align-items-center justify-content-between w-100">
+        <h2 class="fs-2 fw-bold text-dark">{{ "📦 سجل المخزون الحالي"|smart_trans }}</h2>
+        <a href="{% url 'inventory:add_stock_item' %}" class="btn btn-dark btn-sm rounded-pill px-4">
+            <i class="bi bi-plus-lg"></i> {{ "إضافة مخزون"|smart_trans }}
+        </a>
+    </div>
+</nav>
 
-    <div class="container-fluid px-4">
-        <div class="content-panel">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th scope="col">المنتج / SKU</th>
-                            <th scope="col">الفرع</th>
-                            <th scope="col">الكمية</th>
-                            <th scope="col">تاريخ الانتهاء</th>
-                            <th scope="col">الأيام المتبقية</th>
-                            <th scope="col">الحالة</th>
-                            <th scope="col">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in stock_items %}
-                        <tr>
-                            <td>
-                                <div class="fw-bold">{{ item.product.name }}</div>
-                                <small class="text-muted">{{ item.product.sku }}</small>
-                                <br>
-                                <span class="badge bg-light text-dark border mt-1">{{ item.batch_id }}</span>
-                            </td>
-                            <td>{{ item.branch.name }}</td>
-                            <td class="fw-bold fs-5">{{ item.quantity }} <small class="fs-6 fw-normal text-muted">{{ item.product.unit }}</small></td>
-                            <td>{{ item.expiry_date|date:"Y-m-d" }}</td>
-                            <td>
-                                {% if item.days_remaining < 0 %}
-                                    <span class="text-danger fw-bold">منتهي منذ {{ item.days_remaining|stringformat:"+d"|slice:"1:" }} يوم</span>
+<div class="container-fluid px-4">
+    <div class="content-panel">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th scope="col">{{ "المنتج / SKU"|smart_trans }}</th>
+                        <th scope="col">{{ "الفرع"|smart_trans }}</th>
+                        <th scope="col">{{ "الكمية"|smart_trans }}</th>
+                        <th scope="col">{{ "تاريخ الانتهاء"|smart_trans }}</th>
+                        <th scope="col">{{ "الأيام المتبقية"|smart_trans }}</th>
+                        <th scope="col">{{ "الحالة"|smart_trans }}</th>
+                        <th scope="col">{{ "الإجراءات"|smart_trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stock_items %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ item.product.name }}</div>
+                            <small class="text-muted">{{ item.product.sku }}</small>
+                            <br>
+                            <span class="badge bg-light text-dark border mt-1">{{ item.batch_id }}</span>
+                        </td>
+                        <td>{{ item.branch.name }}</td>
+                        <td class="fw-bold fs-5">{{ item.quantity }} <small class="fs-6 fw-normal text-muted">{{
+                                item.product.unit }}</small></td>
+                        <td>{{ item.expiry_date|date:"Y-m-d" }}</td>
+                        <td>
+                            {% if item.days_remaining < 0 %} <span class="text-danger fw-bold">{{ "منتهي
+                                منذ"|smart_trans }} {{ item.days_remaining|stringformat:"+d"|slice:"1:" }} {{
+                                "يوم"|smart_trans }}</span>
                                 {% elif item.days_remaining == 0 %}
-                                    <span class="text-danger fw-bold">ينتهي اليوم!</span>
-                                {% elif item.days_remaining <= 3 %}
-                                    <span class="text-warning fw-bold">باقي {{ item.days_remaining }} أيام</span>
-                                {% else %}
-                                    <span class="text-success fw-bold">باقي {{ item.days_remaining }} يوم</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge rounded-pill bg-{{ item.status_color }} bg-opacity-10 text-{{ item.status_color }} px-3 py-2">
-                                    {% if item.status_color == 'danger' %}
-                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> تالف / خطر
-                                    {% elif item.status_color == 'warning' %}
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> وشك الانتهاء
+                                <span class="text-danger fw-bold">{{ "ينتهي اليوم!"|smart_trans }}</span>
+                                {% elif item.days_remaining <= 3 %} <span class="text-warning fw-bold">{{
+                                    "باقي"|smart_trans }} {{ item.days_remaining }} {{ "أيام"|smart_trans }}</span>
                                     {% else %}
-                                        <i class="bi bi-check-circle-fill me-1"></i> سليم
+                                    <span class="text-success fw-bold">{{ "باقي"|smart_trans }} {{ item.days_remaining
+                                        }} {{ "يوم"|smart_trans }}</span>
                                     {% endif %}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'inventory:edit_stock_item' item.id %}" class="btn btn-sm btn-outline-primary" title="تعديل"><i class="bi bi-pencil-square"></i></a>
-                                    <a href="{% url 'analytics:log_waste' %}?stock_id={{ item.id }}" class="btn btn-sm btn-outline-warning" title="تسجيل كهدر"><i class="bi bi-recycle"></i></a>
-                                    <a href="{% url 'inventory:delete_stock_item' item.id %}" class="btn btn-sm btn-outline-danger" title="حذف نهائي"><i class="bi bi-trash"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <h5 class="fw-bold text-muted">المخزون فارغ حالياً</h5>
-                                <a href="{% url 'inventory:add_stock_item' %}" class="btn btn-primary mt-2">إضافة أول منتج</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                        </td>
+                        <td>
+                            <span
+                                class="badge rounded-pill bg-{{ item.status_color }} bg-opacity-10 text-{{ item.status_color }} px-3 py-2">
+                                {% if item.status_color == 'danger' %}
+                                <i class="bi bi-exclamation-octagon-fill me-1"></i> {{ "تالف / خطر"|smart_trans }}
+                                {% elif item.status_color == 'warning' %}
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ "وشك الانتهاء"|smart_trans }}
+                                {% else %}
+                                <i class="bi bi-check-circle-fill me-1"></i> {{ "سليم"|smart_trans }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'inventory:edit_stock_item' item.id %}"
+                                    class="btn btn-sm btn-outline-primary" title="{{ 'تعديل'|smart_trans }}"><i
+                                        class="bi bi-pencil-square"></i></a>
+                                <a href="{% url 'analytics:log_waste' %}?stock_id={{ item.id }}"
+                                    class="btn btn-sm btn-outline-warning" title="{{ 'تسجيل كهدر'|smart_trans }}"><i
+                                        class="bi bi-recycle"></i></a>
+                                <a href="{% url 'inventory:delete_stock_item' item.id %}"
+                                    class="btn btn-sm btn-outline-danger" title="{{ 'حذف نهائي'|smart_trans }}"><i
+                                        class="bi bi-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <h5 class="fw-bold text-muted">{{ "المخزون فارغ حالياً"|smart_trans }}</h5>
+                            <a href="{% url 'inventory:add_stock_item' %}" class="btn btn-primary mt-2">{{ "إضافة أول
+                                منتج"|smart_trans }}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 {% endblock %}
