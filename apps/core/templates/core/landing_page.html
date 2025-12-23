@@ -1,0 +1,373 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroWaste AI | المستقبل المستدام</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2ecc71;
+            --dark-bg: #0f172a;
+            --text-color: #f8fafc;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            z-index: 2;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2ecc71 0%, #3498db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        /* 3D Canvas Container */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.6;
+        }
+
+        /* Buttons */
+        .btn-glow {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            border: none;
+            color: white;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+            color: white;
+        }
+
+        /* Features Section */
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        /* High Contrast Helper Class */
+        .text-white-80 {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-recycle me-2"></i> ZeroWaste AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon bg-light"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link text-white" href="#about">عن المنصة</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#features">الخدمات</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#contact">تواصل معنا</a></li>
+                </ul>
+                <a href="{% url 'login' %}" class="btn btn-outline-light rounded-pill px-4">تسجيل الدخول</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with 3D Background -->
+    <section class="hero-section">
+        <div id="canvas-container"></div>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <div
+                        class="badge bg-primary bg-opacity-25 text-primary border border-primary mb-3 px-3 py-2 rounded-pill">
+                        الذكاء الاصطناعي لتقليل الهدر
+                    </div>
+                    <h1 class="hero-title">حول هدرك إلى ربح <br> باستخدام الذكاء الاصطناعي</h1>
+                    <p class="hero-subtitle text-white-80">
+                        نظام ذكي متكامل للمطاعم والفنادق يساعدك على تتبع المخزون، تحليل الفاقد، واكتشاف فرص التوفير
+                        تلقائياً باستخدام تقنيات Google Gemini.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'login' %}" class="btn btn-glow btn-lg">
+                            ابدأ الآن <i class="bi bi-arrow-left ms-2"></i>
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            اعرف المزيد
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5" style="background: rgba(0,0,0,0.2);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold display-5 mb-3 text-white">لماذا ZeroWaste؟</h2>
+                <p class="text-white-50 lead">حلول تقنية متقدمة لإدارة عملياتك بكفاءة</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon"><i class="bi bi-cpu"></i></div>
+                        <h4 class="fw-bold mb-3 text-white">تحليل ذكي (AI)</h4>
+                        <p class="text-white-50">يقوم النظام بتحليل بياناتك تلقائياً واقتراح كميات الشراء المثالية
+                            لتقليل الفائض.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h4 class="fw-bold mb-3 text-white">تقارير فورية</h4>
+                        <p class="text-white-50">لوحة تحكم تفاعلية تعرض لك مؤشرات الأداء وحجم الهدر المالي لحظة بلحظة.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon"><i class="bi bi-building-check"></i></div>
+                        <h4 class="fw-bold mb-3 text-white">إدارة الفروع</h4>
+                        <p class="text-white-50">ربط جميع فروعك في منصة واحدة مع إمكانية تتبع أداء كل فرع على حدة.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5 bg-dark border-top border-secondary">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h2 class="display-6 fw-bold mb-4 text-white">عن المنصة</h2>
+                    <p class="lead text-white-80 mb-4">
+                        ZeroWaste هي منصة رقمية رائدة تهدف إلى إحداث ثورة في طريقة إدارة المطاعم والفنادق لمخزونها.
+                        نحن نؤمن بأن كل جرام من الطعام له قيمة، وأن التكنولوجيا هي المفتاح لتقليل الهدر وزيادة الربحية.
+                    </p>
+                    <p class="text-white-50">
+                        نستخدم أحدث خوارزميات الذكاء الاصطناعي (AI) لتحليل أنماط الاستهلاك والتنبؤ بالاحتياجات
+                        المستقبلية، مما يمنح مدراء الفروع القدرة على اتخاذ قرارات مدروسة في الوقت الفعلي.
+                    </p>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <h3 class="fw-bold text-primary">50+</h3>
+                            <p class="small text-white-50">مطعم يستخدم نظامنا</p>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="fw-bold text-primary">20%</h3>
+                            <p class="small text-white-50">متوسط توفير في التكاليف</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5" style="background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold display-6 mb-3 text-white">تواصل معنا</h2>
+                <p class="text-white-50 lead">هل لديك استفسار أو ترغب في تسجيل منشأتك؟ نحن هنا للمساعدة</p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 text-center">
+                    <div class="card bg-dark border-secondary p-4 p-md-5">
+                        <div class="row g-4">
+                            <div class="col-md-6 border-end border-secondary">
+                                <i class="bi bi-envelope-at text-primary fs-2 mb-3"></i>
+                                <h5 class="fw-bold mb-2 text-white">البريد الإلكتروني</h5>
+                                <p class="text-white-50 mb-3">لطلبات التسجيل والدعم الفني</p>
+                                <a href="mailto:register@zerowaste.sa"
+                                    class="text-white text-decoration-none fs-5">register@zerowaste.sa</a>
+                            </div>
+                            <div class="col-md-6">
+                                <i class="bi bi-telephone text-primary fs-2 mb-3"></i>
+                                <h5 class="fw-bold mb-2 text-white">رقم الجوال</h5>
+                                <p class="text-white-50 mb-3">تواصل معنا مباشرة عبر الواتساب</p>
+                                <a href="tel:+966501234567" class="text-white text-decoration-none fs-5">+966 50 123
+                                    4567</a>
+                            </div>
+                        </div>
+                        <div class="mt-5 pt-4 border-top border-secondary">
+                            <p class="text-white-50 mb-3">أو قم بزيارتنا في مقرنا الرئيسي</p>
+                            <p class="mb-0 text-white"><i class="bi bi-geo-alt me-2 text-primary"></i> الرياض، المملكة
+                                العربية السعودية</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 border-top border-secondary">
+        <div class="container text-center">
+            <p class="text-white-50 mb-0 small">© 2025 ZeroWaste AI. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 3D Scene Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+
+        const container = document.getElementById('canvas-container');
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // Create Particles
+        const geometry = new THREE.BufferGeometry();
+        const particlesCount = 2000;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 15;
+        }
+        geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const material = new THREE.PointsMaterial({
+            size: 0.02,
+            color: 0x2ecc71,
+            transparent: true,
+            opacity: 0.8,
+        });
+        const particlesMesh = new THREE.Points(geometry, material);
+        scene.add(particlesMesh);
+
+        // Globe
+        const globeGeometry = new THREE.IcosahedronGeometry(3, 1);
+        const globeMaterial = new THREE.MeshBasicMaterial({
+            color: 0x3498db,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.1
+        });
+        const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+        if (window.innerWidth > 992) globe.position.x = 2.5;
+        scene.add(globe);
+
+        const linesGeometry = new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(3.5, 1));
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x2ecc71, transparent: true, opacity: 0.1 });
+        const lines = new THREE.LineSegments(linesGeometry, lineMaterial);
+        lines.position.copy(globe.position);
+        scene.add(lines);
+
+        camera.position.z = 5;
+
+        // Interaction
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX / window.innerWidth - 0.5;
+            mouseY = e.clientY / window.innerHeight - 0.5;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particlesMesh.rotation.y += 0.0005;
+            globe.rotation.y += 0.002;
+            globe.rotation.x += 0.001;
+            lines.rotation.y -= 0.002;
+            particlesMesh.rotation.x += mouseY * 0.01;
+            particlesMesh.rotation.y += mouseX * 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            if (window.innerWidth > 992) {
+                globe.position.x = 2.5;
+                lines.position.x = 2.5;
+            } else {
+                globe.position.x = 0;
+                lines.position.x = 0;
+            }
+        });
+    </script>
+</body>
+
+</html>

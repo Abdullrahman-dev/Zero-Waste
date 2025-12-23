@@ -120,17 +120,21 @@
 
                     <!-- تنبيهات المخزون -->
                     {% for item in low_stock_items %}
-                    <div class="notification-item stock-alert p-2 mb-2 rounded border bg-warning bg-opacity-10">
+                    <div class="notification-item stock-alert p-2 mb-2 rounded border bg-warning bg-opacity-10 alert-dismissible fade show alert" role="alert">
                         <div class="d-flex align-items-start">
                             <div class="me-2">
                                 <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <span class="badge bg-warning text-dark mb-1" style="font-size: 0.65rem;">نقص
-                                    مخزون</span>
-                                <h6 class="mb-0 fw-bold small">{{ item.product.name }}</h6>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge bg-warning text-dark mb-1" style="font-size: 0.65rem;">نقص مخزون</span>
+                                        <h6 class="mb-0 fw-bold small">{{ item.product.name }}</h6>
+                                    </div>
+                                    <button type="button" class="btn-close small ms-2" onclick="this.closest('.notification-item').remove()" aria-label="Close" style="font-size: 0.7rem;"></button>
+                                </div>
                                 <p class="mb-0 small text-muted">
-                                    الكمية: <span class="text-danger fw-bold">{{ item.quantity }}</span>
+                                    الكمية: <span class="text-danger fw-bold">{{ item.quantity|floatformat:2 }}</span>
                                     / الحد الأدنى: {{ item.product.minimum_quantity }}
                                 </p>
                             </div>

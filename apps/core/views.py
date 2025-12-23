@@ -67,7 +67,10 @@ def _company_dashboard(request):
     # Notifications
     from apps.notifications.models import UserNotification
     notifications = UserNotification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
-    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count()
+    
+    # Count low stock for badge
+    low_stock_count = StockItem.objects.filter(branch__in=branches, quantity__lte=F('product__minimum_quantity')).count()
+    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count() + low_stock_count
 
     # Latest Reports (Added for AI Dashboard consistency)
     latest_reports = WasteReport.objects.filter(branch__company=company).order_by('-generated_date')[:5]
@@ -106,7 +109,10 @@ def _branch_dashboard(request):
     # Notifications
     from apps.notifications.models import UserNotification
     notifications = UserNotification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
-    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count()
+    
+    # Count low stock for badge
+    low_stock_count = StockItem.objects.filter(branch=branch, quantity__lte=F('product__minimum_quantity')).count()
+    unread_count = UserNotification.objects.filter(user=request.user, is_read=False).count() + low_stock_count
 
     context = {
         'user_role': 'Branch Manager',

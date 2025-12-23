@@ -37,7 +37,7 @@
                                 <span class="badge bg-light text-dark border mt-1">{{ item.batch_id }}</span>
                             </td>
                             <td>{{ item.branch.name }}</td>
-                            <td class="fw-bold fs-5">{{ item.quantity }} <small class="fs-6 fw-normal text-muted">{{ item.product.unit }}</small></td>
+                            <td class="fw-bold fs-5">{{ item.quantity|floatformat:2 }} <small class="fs-6 fw-normal text-muted">{{ item.product.unit }}</small></td>
                             <td>{{ item.expiry_date|date:"Y-m-d" }}</td>
                             <td>
                                 {% if item.days_remaining < 0 %}
