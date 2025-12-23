@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}تحليل الذكاء الاصطناعي - Zero Waste{% endblock %}
+{% load static i18n core_tags %}
+{% block title %}{{ "تحليل الذكاء الاصطناعي - Zero Waste"|smart_trans }}{% endblock %}
 
 {% block content %}
 <nav class="navbar navbar-light bg-transparent py-4 px-4">
     <div class="d-flex align-items-center">
-        <h2 class="fs-2 fw-bold">📈 تقارير الذكاء الاصطناعي</h2>
+        <h2 class="fs-2 fw-bold">{{ "📈 تقارير الذكاء الاصطناعي"|smart_trans }}</h2>
     </div>
     <div class="ms-auto">
         <button class="btn btn-primary rounded-pill px-4 shadow-sm" id="magicAIBtn">
-            <i class="bi bi-magic me-2"></i>المستشار الذكي ✨
+            <i class="bi bi-magic me-2"></i>{{ "المستشار الذكي ✨"|smart_trans }}
         </button>
     </div>
 </nav>
@@ -20,8 +19,8 @@
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
             <div class="content-panel shadow-sm border-0 h-100">
-                <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>أكثر المنتجات هدراً هذا
-                    الشهر</h5>
+                <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>{{ "أكثر المنتجات هدراً
+                    هذا الشهر"|smart_trans }}</h5>
                 <div style="height: 300px;">
                     <canvas id="topWastedChart"></canvas>
                 </div>
@@ -29,8 +28,8 @@
         </div>
         <div class="col-lg-6">
             <div class="content-panel shadow-sm border-0 h-100">
-                <h5 class="fw-bold mb-4"><i class="bi bi-graph-up-arrow me-2 text-danger"></i>الخسائر المالية (آخر 6
-                    شهور)</h5>
+                <h5 class="fw-bold mb-4"><i class="bi bi-graph-up-arrow me-2 text-danger"></i>{{ "الخسائر المالية (آخر 6
+                    شهور)"|smart_trans }}</h5>
                 <div style="height: 300px;">
                     <canvas id="lossTrendChart"></canvas>
                 </div>
@@ -40,28 +39,29 @@
 
     <!-- 💡 Smart Reduction Suggestions Link -->
     <div class="content-panel shadow-sm border-0 mb-4 bg-light bg-opacity-50 text-center py-4">
-        <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>توقعات تقليل الكميات (للتحكم في
-            الفائض)</h5>
-        <p class="text-muted mb-3">احصل على خطة مفصلة لتقليل مشتريات الأسبوع القادم وتقليل الخسائر.</p>
+        <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>{{ "توقعات تقليل الكميات (للتحكم
+            في الفائض)"|smart_trans }}</h5>
+        <p class="text-muted mb-3">{{ "احصل على خطة مفصلة لتقليل مشتريات الأسبوع القادم وتقليل الخسائر."|smart_trans }}
+        </p>
         <a href="{% url 'analytics:reduction_suggestions' %}"
             class="btn btn-warning text-dark fw-bold rounded-pill px-5 shadow-sm">
-            عرض توصيات الشراء <i class="bi bi-arrow-left ms-2"></i>
+            {{ "عرض توصيات الشراء"|smart_trans }} <i class="bi bi-arrow-left ms-2"></i>
         </a>
     </div>
 
     <!-- 📜 Historical Reports Table -->
     <div class="content-panel shadow-sm border-0 mt-4">
-        <h5 class="fw-bold mb-4">📜 سجل التقارير السابقة</h5>
+        <h5 class="fw-bold mb-4">📜 {{ "سجل التقارير السابقة"|smart_trans }}</h5>
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="bg-light">
                     <tr>
-                        <th>رقم التقرير</th>
-                        <th>الفرع</th>
-                        <th>تاريخ التحليل</th>
-                        <th>القيمة المهددة</th>
-                        <th>الحالة</th>
-                        <th>إجراء سريع</th>
+                        <th>{{ "رقم التقرير"|smart_trans }}</th>
+                        <th>{{ "الفرع"|smart_trans }}</th>
+                        <th>{{ "تاريخ التحليل"|smart_trans }}</th>
+                        <th>{{ "القيمة المهددة"|smart_trans }}</th>
+                        <th>{{ "الحالة"|smart_trans }}</th>
+                        <th>{{ "إجراء سريع"|smart_trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,11 +80,11 @@
                             <div class="btn-group">
                                 <a href="{% url 'operations:requests_list' %}?type=promo&branch_id={{ report.branch.id }}&details=طلب تفعيل خصم بناءً على تقرير رقم {{ report.id }}"
                                     class="btn btn-warning btn-sm fw-bold">
-                                    <i class="bi bi-lightning-fill"></i> تفعيل خصم
+                                    <i class="bi bi-lightning-fill"></i> {{ "تفعيل خصم"|smart_trans }}
                                 </a>
                                 <a href="https://saudifoodbank.com/" target="_blank"
                                     class="btn btn-outline-success btn-sm fw-bold ms-1">
-                                    <i class="bi bi-heart-fill"></i> تبرع
+                                    <i class="bi bi-heart-fill"></i> {{ "تبرع"|smart_trans }}
                                 </a>
                             </div>
                         </td>
@@ -93,7 +93,7 @@
                     <tr>
                         <td colspan="6" class="text-center py-5">
                             <i class="bi bi-inbox text-muted fs-1 d-block mb-3"></i>
-                            لا توجد تقارير حالياً
+                            {{ "لا توجد تقارير حالياً"|smart_trans }}
                         </td>
                     </tr>
                     {% endfor %}

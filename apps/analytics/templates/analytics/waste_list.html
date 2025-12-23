@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}سجل الهدر - Zero Waste{% endblock %}
+{% load i18n core_tags %}
+{% block title %}{{ "سجل الهدر - Zero Waste"|smart_trans }}{% endblock %}
 {% block content %}
 <div class="container-fluid px-4">
     <div class="d-flex align-items-center justify-content-between my-4">
         <div>
-            <h1 class="fs-2 fw-bold text-danger">🗑️ سجل الهدر والخسائر</h1>
-            <p class="text-muted mb-0">متابعة دقيقة لكل ما يتم هدره في الفرع</p>
+            <h1 class="fs-2 fw-bold text-danger">{{ "🗑️ سجل الهدر والخسائر"|smart_trans }}</h1>
+            <p class="text-muted mb-0">{{ "متابعة دقيقة لكل ما يتم هدره في الفرع"|smart_trans }}</p>
         </div>
         <a href="{% url 'analytics:log_waste' %}" class="btn btn-danger rounded-pill px-4">
-            <i class="bi bi-plus-lg"></i> تسجيل هدر جديد
+            <i class="bi bi-plus-lg"></i> {{ "تسجيل هدر جديد"|smart_trans }}
         </a>
     </div>
 
@@ -18,13 +19,13 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-4">التاريخ</th>
-                            <th>الفرع</th>
-                            <th>المنتج</th>
-                            <th>الكمية</th>
-                            <th>السبب</th>
-                            <th>المسؤول</th>
-                            <th>ملاحظات</th>
+                            <th class="ps-4">{{ "التاريخ"|smart_trans }}</th>
+                            <th>{{ "الفرع"|smart_trans }}</th>
+                            <th>{{ "المنتج"|smart_trans }}</th>
+                            <th>{{ "الكمية"|smart_trans }}</th>
+                            <th>{{ "السبب"|smart_trans }}</th>
+                            <th>{{ "المسؤول"|smart_trans }}</th>
+                            <th>{{ "ملاحظات"|smart_trans }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,7 +44,7 @@
                         <tr>
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-check-circle fs-1 d-block mb-3 text-success opacity-50"></i>
-                                ممتاز! لا يوجد هدر مسجل.
+                                {{ "ممتاز! لا يوجد هدر مسجل."|smart_trans }}
                             </td>
                         </tr>
                         {% endfor %}

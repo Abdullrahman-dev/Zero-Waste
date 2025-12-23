@@ -16,12 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views # 👈 أضف هذا
+from apps.authentication.forms import CustomPasswordResetForm # 👈 أضف هذا
 
 # استيراد الـ views المخصصة للإشعارات
 from apps.notifications.admin_views import notification_dashboard, send_notification_now
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('i18n/', include('django.conf.urls.i18n')), # 👈 أضف هذا للترجمة
     
     # صفحة إدارة الإشعارات المخصصة
     path('admin/notifications/dashboard/', notification_dashboard, name='admin_notification_dashboard'),
@@ -36,4 +39,22 @@ urlpatterns = [
     path('auth/', include('apps.authentication.urls')),
     path('notifications/', include('apps.notifications.urls')),
     path('ai/', include('apps.ai_engine.urls')),
+
+    # روابط استعادة كلمة المرور عبر البريد الإلكتروني (موحدة لاستخدام قوالب التطبيق)
+    path('password-reset/', auth_views.PasswordResetView.as_view(
+        template_name='authentication/password_reset.html',
+        email_template_name='notifications/emails/password_reset.txt',
+        html_email_template_name='notifications/emails/password_reset.html',
+        subject_template_name='authentication/password_reset_subject.txt',
+        form_class=CustomPasswordResetForm
+    ), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='authentication/password_reset_done.html'
+    ), name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='authentication/password_reset_confirm.html'
+    ), name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='authentication/password_reset_complete.html'
+    ), name='password_reset_complete'),
 ]

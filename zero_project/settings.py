@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -80,7 +81,11 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n', # 👈 أضف هذا للترجمة في القوالب
             ],
+            'libraries': {
+                'core_tags': 'apps.core.templatetags.core_tags',
+            }
         },
     },
 ]
@@ -125,9 +130,20 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ar'  # 👈 اجعل العربية هي الافتراضية
 
-TIME_ZONE = 'UTC'
+from django.utils.translation import gettext_lazy as _
+
+LANGUAGES = [
+    ('ar', _('Arabic')),
+    ('en', _('English')),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
+TIME_ZONE = 'Asia/Riyadh'  # 👈 تحديث المنطقة الزمنية
 
 USE_I18N = True
 
@@ -159,24 +175,18 @@ STATICFILES_DIRS = [
 USE_MOCK_API = True
 
 # Email Configuration
-# للتطوير: استخدام Console Backend (يطبع الإيميلات في الكونسول)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# للإنتاج: استخدام SMTP (قم بتفعيل هذه الإعدادات عند الحاجة)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get('EMAIL_USER', '')  # ضع الإيميل هنا
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')  # ضع كلمة المرور هنا
-DEFAULT_FROM_EMAIL = 'Zero Waste System <noreply@zerowaste.com>'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+DEFAULT_FROM_EMAIL = f'Zero Waste System <{EMAIL_HOST_USER}>'
 
 LOGIN_REDIRECT_URL = 'core:dashboard'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_REDIRECT_URL = 'core:dashboard'
 
 # Google Gemini API Key
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")

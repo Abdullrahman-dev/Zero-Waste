@@ -2,14 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, F, Q
 from django.http import JsonResponse
-from django.db.models import Sum
 from .models import RestaurantCompany, Branch
 from .forms import CompanyForm, BranchForm
 from apps.inventory.models import StockItem
 from apps.analytics.models import WasteReport
 from apps.operations.models import OperationalRequest
-from apps.inventory.models import Product, StockItem, BranchStockSetting
-from .forms import CompanyForm, BranchForm
+from apps.inventory.models import Product, BranchStockSetting
 from django.contrib import messages
 import datetime
 from django.contrib.auth import get_user_model
@@ -83,7 +81,6 @@ def _company_dashboard(request):
         'pending_requests': total_requests,
         'low_stock_items': low_stock_items,
         'notifications': notifications,
-        'notifications': notifications,
         'unread_notifications_count': unread_count,
         'latest_reports': latest_reports, # Restored for Template
         'total_potential_loss': total_waste_cost, # Alias for Template compatibility
@@ -148,6 +145,7 @@ def branch_list(request):
 
 @login_required
 def add_branch_view(request):
+    User = get_user_model()
     # Only Superuser or Manager
     if not (request.user.is_superuser or request.user.role == 'manager'):
         messages.error(request, "ليس لديك صلاحية.")
@@ -185,14 +183,10 @@ def add_branch_view(request):
 # --- CLIENT MANAGEMENT (SAAS ADMIN) ---
 @user_passes_test(lambda u: u.is_superuser)
 def add_company_view(request):
+    User = get_user_model()
     if request.method == 'POST':
         form = CompanyForm(request.POST)
         if form.is_valid():
-            # 1. Create User
-            username = form.cleaned_data['new_manager_username']
-            email = form.cleaned_data['new_manager_email']
-            password = form.cleaned_data['new_manager_password']
-            
             # Create General Manager
             new_username = form.cleaned_data.get('new_manager_username')
             new_email = form.cleaned_data.get('new_manager_email')
@@ -284,6 +278,7 @@ def impersonate_user(request, user_id):
         return redirect('core:dashboard')
 
 def stop_impersonation(request):
+    User = get_user_model()
     impersonator_id = request.session.get('impersonator_id')
     
     if impersonator_id:
@@ -295,7 +290,7 @@ def stop_impersonation(request):
             if 'impersonator_id' in request.session:
                 del request.session['impersonator_id']
                 
-            messages.success(request, "✅ تم العودة لحساب المدير.")
+            messages.success(request, "تم العودة لحساب المدير.")
             return redirect('core:dashboard')
         except Exception:
             messages.error(request, "خطأ في استعادة الحساب.")
@@ -310,3 +305,22 @@ def get_system_logs():
         {'level': 'INFO', 'msg': 'New Company Created: Burger King', 'time': '2023-10-25 12:00', 'user': 'Admin'},
         {'level': 'ERROR', 'msg': 'Foodics Sync Failed: Timeout', 'time': '2023-10-24 09:15', 'user': 'System'},
     ]
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        new_username = request.POST.get('username')
+        
+        # تحديث اسم المستخدم مع فحص التوفر
+        if new_username and new_username != user.username:
+            if get_user_model().objects.filter(username=new_username).exists():
+                messages.error(request, f"اسم المستخدم '{new_username}' محجوز بالفعل.")
+            else:
+                user.username = new_username
+                user.save()
+                messages.success(request, "تم تحديث اسم المستخدم بنجاح.")
+        else:
+            messages.info(request, "لم يتم إجراء أي تغييرات.")
+    
+    return redirect(request.META.get('HTTP_REFERER', 'core:dashboard'))

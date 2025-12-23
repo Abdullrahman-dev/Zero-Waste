@@ -1,14 +1,13 @@
 // static/js/dashboard.js
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("🚀 Dashboard JS Loaded Successfully!"); // رسالة تأكيد في الكونسول
+    console.log("🚀 Dashboard JS Loaded Successfully!");
 
     const ctx = document.getElementById('wasteChart');
 
     if (ctx) {
         console.log("📊 Found Chart Canvas, fetching data...");
-        
-        // جلب البيانات من الـ API
+
         fetch('/api/chart-data/')
             .then(response => {
                 if (!response.ok) {
@@ -17,29 +16,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(data => {
-                console.log("✅ Data received:", data); // لرؤية البيانات في الكونسول
+                console.log("✅ Data received:", data);
 
-                // إعداد الرسم البياني
                 new Chart(ctx, {
-                    type: 'bar', // نوع الرسم
+                    type: 'bar',
                     data: {
-                        labels: data.labels, 
+                        labels: data.labels,
                         datasets: [{
                             label: 'قيمة الهدر المتوقع (ر.س)',
                             data: data.values,
-                            backgroundColor: '#e74c3c', // لون أحمر
-                            borderRadius: 6, // حواف ناعمة للأعمدة
-                            barPercentage: 0.6, // عرض العمود
+                            backgroundColor: '#e74c3c',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false }, // إخفاء العنوان
+                            legend: { display: false },
                             tooltip: {
                                 callbacks: {
-                                    label: function(context) {
+                                    label: function (context) {
                                         return context.raw + ' ر.س';
                                     }
                                 }
@@ -60,7 +58,27 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('❌ Error loading chart:', error);
             });
-    } else {
-        console.warn("⚠️ Chart Canvas element not found on this page.");
+    }
+
+    // --- Theme Toggle Logic ---
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        // Apply saved theme on load
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', function () {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
     }
 });
