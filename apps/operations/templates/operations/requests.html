@@ -62,8 +62,8 @@
                     <option value="">{{ "كل الشركات"|smart_trans }}</option>
                     {% for company in companies %}
                     <option value="{{ company.id }}" {% if
-                        selected_company|stringformat:"s"==company.id|stringformat:"s" %}selected{% endif %}>
-                        {{company.name }}</option>
+                        selected_company|stringformat:"s"==company.id|stringformat:"s" %}selected{% endif %}>{{
+                        company.name }}</option>
                     {% endfor %}
                 </select>
                 {% endif %}
@@ -73,9 +73,8 @@
                     onchange="this.form.submit()">
                     <option value="">{{ "كل الفروع"|smart_trans }}</option>
                     {% for branch in branches %}
-                    <option value="{{ branch.id }}" {% if
-                        selected_branch|stringformat:"s"==branch.id|stringformat:"s"%}selected{% endif %}>
-                        {{branch.name}}</option>
+                    <option value="{{ branch.id }}" {% if selected_branch|stringformat:"s"==branch.id|stringformat:"s"
+                        %}selected{% endif %}>{{ branch.name }}</option>
                     {% endfor %}
                 </select>
                 {% endif %}
