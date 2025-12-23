@@ -1,26 +1,31 @@
-{% load static %}
+{% load core_tags %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
-    <title>تأكيد الحذف</title>
+    <title>{{ "تأكيد الحذف"|smart_trans }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
 </head>
+
 <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
 
     <div class="card shadow text-center p-4" style="max-width: 500px;">
-        <h3 class="text-danger mb-3">⚠️ تأكيد الحذف</h3>
-        <p class="fs-5">هل أنت متأكد أنك تريد حذف مخزون: <br> <strong>{{ item.product.name }}</strong>؟</p>
-        <p class="text-muted small">لا يمكن التراجع عن هذه العملية.</p>
+        <h3 class="text-danger mb-3">{{ "⚠️ تأكيد الحذف"|smart_trans }}</h3>
+        <p class="fs-5">{{ "هل أنت متأكد أنك تريد حذف مخزون: "|smart_trans }} <br> <strong>{{ item.product.name
+                }}</strong>؟</p>
+        <p class="text-muted small">{{ "لا يمكن التراجع عن هذه العملية."|smart_trans }}</p>
 
         <form method="post">
             {% csrf_token %}
             <div class="mt-4">
-                <button type="submit" class="btn btn-danger px-4">نعم، احذف</button>
-                <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary px-4">تراجع</a>
+                <button type="submit" class="btn btn-danger px-4">{{ "نعم، احذف"|smart_trans }}</button>
+                <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary px-4">{{ "تراجع"|smart_trans
+                    }}</a>
             </div>
         </form>
     </div>
 
 </body>
+
 </html>

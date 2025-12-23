@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Zero Waste\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-22 23:00+0300\n"
+"PO-Revision-Date: 2025-12-22 23:00+0300\n"
+"Last-Translator: Antigravity\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "الإعدادات"
+msgstr "Settings"
+
+msgid "الملف الشخصي"
+msgstr "Profile"
+
+msgid "اسم المستخدم (Username)"
+msgstr "Username"
+
+msgid "حفظ التغييرات"
+msgstr "Save Changes"
+
+msgid "اللغة"
+msgstr "Language"
+
+msgid "العربية"
+msgstr "Arabic"
+
+msgid "English"
+msgstr "English"
+
+msgid "المظهر"
+msgstr "Appearance"
+
+msgid "الوضع الداكن (Dark Mode)"
+msgstr "Dark Mode"
+
+msgid "الأمان"
+msgstr "Security"
+
+msgid "استعادة كلمة المرور"
+msgstr "Reset Password"
+
+msgid "Zero Waste"
+msgstr "Zero Waste"
+
+msgid "وضع المشاهدة"
+msgstr "Impersonation Mode"
+
+msgid "العودة للأدمن 🔙"
+msgstr "Back to Admin 🔙"
+
+msgid "لوحة التحكم"
+msgstr "Dashboard"
+
+msgid "ربط الأنظمة"
+msgstr "Integrations"
+
+msgid "إضافة منتج جديد"
+msgstr "Add New Product"
+
+msgid "إضافة للمخزون"
+msgstr "Add Stock"
+
+msgid "المخزون"
+msgstr "Inventory"
+
+msgid "سجل الهدر"
+msgstr "Waste Logs"
+
+msgid "الفروع"
+msgstr "Branches"
+
+msgid "التحليلات"
+msgstr "Analytics"
+
+msgid "العمليات"
+msgstr "Operations"
+
+msgid "تسجيل خروج"
+msgstr "Logout"
+
+msgid "تحليل الهدر (آخر العمليات)"
+msgstr "Waste Analysis (Recent)"
+
+msgid "مركز الإشعارات"
+msgstr "Notifications Center"
+
+msgid "تحليل جديد"
+msgstr "New Analysis"
+
+msgid "إدارة الفروع"
+msgstr "Manage Branches"
+
+msgid "إضافة فرع جديد"
+msgstr "Add New Branch"
